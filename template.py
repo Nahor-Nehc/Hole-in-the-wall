@@ -3,7 +3,7 @@ import pygame
 pygame.mixer.pre_init(44100, 16, 2, 4096)
 pygame.init()
 
-WIDTH, HEIGHT = 960, 560
+WIDTH, HEIGHT = 560, 560
 
 FPS = 30
 
@@ -23,7 +23,7 @@ DBROWN = (159, 100,  64)
 
 # display window that is drawn to
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Time platformer")
+pygame.display.set_caption("Hole in the wall")
 
 # fonts
 FONT = lambda x: pygame.font.SysFont("consolas.ttf", x)
@@ -34,7 +34,39 @@ from os import path
 PATH_TO_ATLAS_IMAGE = path.join("assets", "images", "atlas.bmp")
 PATH_TO_LEVELS = path.join("assets", "levels", "levels")
 
-def draw():
+def handle_events(player, mouse):
+  for event in pygame.event.get():
+    #if the "x" button is pressed ...
+    if event.type == pygame.QUIT:
+      #save game with shelve?
+      #
+      #ends game loop
+      run = False
+
+      #terminates pygame
+      pygame.quit()
+
+      #terminates system
+      import sys
+      sys.exit()
+      
+    elif event.type == pygame.KEYDOWN:
+      if event.key == pygame.K_LEFT:
+        player.move(-50, 0)
+      elif event.key == pygame.K_RIGHT:
+        player.move(50, 0)
+      elif event.key == pygame.K_UP:
+        player.move(0, -50)
+      elif event.key == pygame.K_DOWN:
+        player.move(0, 50)
+
+def process_game(blocks):
+  blocks.move()
+
+def draw(WIN, player, blocks):
+  WIN.fill(BLACK)
+  player.draw(WIN)
+  blocks.draw(WIN)
   pygame.display.update()
 
 def main():
@@ -46,12 +78,29 @@ def main():
   #pygame.event.set_allowed(USEREVENTS)
   
   from components.state import State
-  from components.textures import TextureAtlas
+  #from components.textures import TextureAtlas
+  from components.player import Player
+  from components.blocks import Block, Blocks
   
   # GAME VARIABLES
   state = State("start")
+  player_surface = pygame.Surface((50, 50))
+  player_surface.fill(WHITE)
+  player = Player(200, 200, player_surface)
   
-  texture_atlas = TextureAtlas(PATH_TO_ATLAS_IMAGE)
+  blocks = Blocks()
+  blocks.toggle_see_collision_box()
+  
+  blocks.create(100, 100, 50, 50, WHITE, 2, 0.7)
+  blocks.create(200, 100, 100, 50, WHITE, 2, 0.7)
+  
+  blocks.create(100, 0, 50, 50, WHITE, 2, 0.7)
+  blocks.create(200, 0, 100, 50, WHITE, 2, 0.7)
+  
+  blocks.create(100, -100, 100, 50, WHITE, 2, 0.7)
+  blocks.create(250, -100, 50, 50, WHITE, 2, 0.7)
+  
+  #texture_atlas = TextureAtlas(PATH_TO_ATLAS_IMAGE)
   
   # DEBUG MODE
   debug_mode = True
@@ -67,29 +116,10 @@ def main():
     mouse = pygame.mouse.get_pos()
     
     #for everything that the user has inputted ...
-    for event in pygame.event.get():
-
-      #if the "x" button is pressed ...
-      if event.type == pygame.QUIT:
-        
-        #save game with shelve?
-        #
-
-        #ends game loop
-        run = False
-
-        #terminates pygame
-        pygame.quit()
-
-        #terminates system
-        import sys
-        sys.exit()
-        
-      elif event.type == pygame.KEYDOWN:
-        if state.get_state() == "start":
-          if event.key == pygame.K_e: # temp
-            state.set_state("editor mode")
+    handle_events(player, mouse)
     
-    draw()
+    process_game(blocks)
+    
+    draw(WIN, player, blocks)
 
 main()
