@@ -22,10 +22,12 @@ class Block(Rect):
     collision_rect_width = int(self.width * collision_rect_percentage)
     collision_rect_height = int(self.height * collision_rect_percentage)
     
-    self.collision_rect =Rect(collision_rect_left,
-                              collision_rect_top,
-                              collision_rect_width,
-                              collision_rect_height)
+    self.collision_rect =Rect(
+      collision_rect_left,
+      collision_rect_top,
+      collision_rect_width,
+      collision_rect_height
+      )
     
     print(self.collision_rect)
   
@@ -33,7 +35,6 @@ class Block(Rect):
     draw_rect(WIN, self.colour, self)
     if see_collision_box == True:
       draw_rect(WIN, (255, 255, 0), self.collision_rect, 1)
-
   
   def move_generic(self, x_direction, y_direction):
     self.x += x_direction

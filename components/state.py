@@ -7,7 +7,7 @@ class State:
       "start":[],
       "menu":["level select"],
       "game":["paused"],
-      "editor mode":[],
+      "editor":[],
     }
     
     self.substate = None
