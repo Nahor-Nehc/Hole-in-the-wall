@@ -1,26 +1,28 @@
 from pygame import Rect
 from pygame.draw import rect as draw_rect
 from collections.abc import MutableSequence
+import time
 
 class Block(Rect):
-  def __init__(self, left, top, width, height, colour, speed, collision_rect_percentage:float, blocks_group):
+  def __init__(self, left, top, width, height, colour, speed, collision_rect_decimal:float, blocks_group=None):
     super().__init__(left, top, width, height)
     self.colour = colour
-    self.set_collision_rect_precentage(collision_rect_percentage)
+    self.set_collision_rect_precentage(collision_rect_decimal)
     self.speed = speed
-    blocks_group.add(self)
+    if blocks_group != None:
+      blocks_group.add(self)
   
-  def set_collision_rect_precentage(self, collision_rect_percentage:float):
+  def set_collision_rect_precentage(self, collision_rect_decimal:float):
     
-    if 0 <= collision_rect_percentage <= 1:
+    if 0 <= collision_rect_decimal <= 1:
       pass
     else:
-      raise ValueError("Collision rect percentage not between 0 and 1")
+      raise ValueError("Collision rect decimal not between 0 and 1")
     
-    collision_rect_left = int(self.left + self.width*((1-collision_rect_percentage)/2))
-    collision_rect_top = int(self.top + self.height*((1-collision_rect_percentage)/2))
-    collision_rect_width = int(self.width * collision_rect_percentage)
-    collision_rect_height = int(self.height * collision_rect_percentage)
+    collision_rect_left = int(self.left + self.width*((1-collision_rect_decimal)/2))
+    collision_rect_top = int(self.top + self.height*((1-collision_rect_decimal)/2))
+    collision_rect_width = int(self.width * collision_rect_decimal)
+    collision_rect_height = int(self.height * collision_rect_decimal)
     
     self.collision_rect =Rect(
       collision_rect_left,
@@ -28,8 +30,6 @@ class Block(Rect):
       collision_rect_width,
       collision_rect_height
       )
-    
-    print(self.collision_rect)
   
   def draw(self, WIN, see_collision_box):
     draw_rect(WIN, self.colour, self)
@@ -45,13 +45,15 @@ class Block(Rect):
   def move(self):
     self.move_generic(0, self.speed)
 
+
 class Blocks(MutableSequence):
-  def __init__(self):
-    self.blocks = []
+  def __init__(self, *blocks):
+    self.blocks = list(blocks)
     self.see_collision_box = False
+    self.sort()
   
-  # def __call__(self):
-  #   return self.blocks
+  def sort(self):
+    self.blocks.sort(key = lambda block: block.bottom, reverse=True)
 
   def __getitem__(self, i):
     return self.blocks[i]
@@ -67,9 +69,11 @@ class Blocks(MutableSequence):
     
   def insert(self, index, object):
     self.blocks.insert(index, object)
+    self.sort()
 
   def add(self, block:Block):
     self.blocks.append(block)
+    self.sort()
   
   def remove(self, block:Block):
     self.blocks.remove(block)
@@ -85,5 +89,19 @@ class Blocks(MutableSequence):
     for block in self.blocks:
       block.move()
   
-  def create(self, left, top, width, height, colour, speed, collision_rect_percentage:float):
-    new_block = Block(left, top, width, height, colour, speed, collision_rect_percentage, self)
+  def create(self, left, top, width, height, colour, speed, collision_rect_decimal:float):
+    new_block = Block(left, top, width, height, colour, speed, collision_rect_decimal, self)
+    self.append(new_block)
+    self.sort()
+  
+  def get_rects(self):
+    return [block.collision_rect for block in self.blocks]
+
+  def cull(self, height):
+    remove = []
+    for block in self.blocks:
+      if block.y > height:
+        remove.append(block)
+    
+    for item in remove:
+      self.blocks.remove(item)    
