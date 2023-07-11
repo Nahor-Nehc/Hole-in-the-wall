@@ -82,6 +82,8 @@ def process_game(player, blocks, state):
   if state.get_state() == "game":
     blocks.move()
     player.update()
+    print(player.collide(blocks.get_rects()))
+    blocks.cull(HEIGHT)
 
 def draw(WIN, player, blocks, state):
   WIN.fill(BLACK)
@@ -128,7 +130,11 @@ def main():
   player_surface.fill(WHITE)
   player = Player(PLAYER_BOUNDS["left"], PLAYER_BOUNDS["top"], player_surface, PLAYER_BOUNDS)
   
-  blocks = Blocks()
+  temp_blocks = [
+    Block(PLAYER_BOUNDS["left"] + SIZE*i2, -i*3*SIZE, SIZE, SIZE, WHITE, 5, 0.7) for i in range(1000) for i2 in range(2)
+  ]
+  
+  blocks = Blocks(*temp_blocks)
   blocks.toggle_see_collision_box()
   
   #texture_atlas = TextureAtlas(PATH_TO_ATLAS_IMAGE)
