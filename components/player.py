@@ -14,6 +14,17 @@ class Player:
   def move(self, x_direction, y_direction):
     self.rect.x += x_direction
     self.rect.y += y_direction
+  
+  def collide(self, rects:list):
+    rects.sort(key = lambda rect: rect.bottom, reverse = True)
+    i = 0
+    while rects[i].bottom >= self.bounds["top"]:
+      if self.rect.colliderect(rects[i]):
+        return True
+      i += 1
+      if i >= len(rects):
+        return False
+    return False
       
   def update(self):
     if self.rect.x < self.bounds["left"]:
