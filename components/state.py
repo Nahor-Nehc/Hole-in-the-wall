@@ -6,7 +6,7 @@ class State:
     self.substates = {
       "start":[],
       "menu":["level select"],
-      "game":["paused"],
+      "game":["paused", "game over"],
       "editor":[],
     }
     
@@ -20,10 +20,8 @@ class State:
     return self.state
   
   def set_substate(self, substate):
-    try:
-      self.substate = self.substates[self.state][substate]
-    except:
-      pass
+    if substate in self.substates[self.state]:
+      self.substate = substate
     
   def get_substate(self):
     return self.substate
