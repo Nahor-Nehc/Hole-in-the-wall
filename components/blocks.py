@@ -1,7 +1,6 @@
 from pygame import Rect
 from pygame.draw import rect as draw_rect
 from collections.abc import MutableSequence
-import time
 
 class Block(Rect):
   def __init__(self, left, top, width, height, colour, speed, collision_rect_decimal:float, blocks_group=None):
@@ -34,7 +33,7 @@ class Block(Rect):
   def draw(self, WIN, see_collision_box):
     draw_rect(WIN, self.colour, self)
     if see_collision_box == True:
-      draw_rect(WIN, (255, 255, 0), self.collision_rect, 1)
+      draw_rect(WIN, (255, 0, 255), self.collision_rect, 1)
   
   def move_generic(self, x_direction, y_direction):
     self.x += x_direction
