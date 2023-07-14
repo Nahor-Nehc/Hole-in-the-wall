@@ -26,10 +26,12 @@ WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Hole in the wall")
 
 # sizes
-SIZE = 50
+SIZE = round(WIDTH/(11.2))
+
+top = int(HEIGHT/3*2 - SIZE*2)
 PLAYER_BOUNDS = {
-  "top": HEIGHT/3*2 - SIZE*2,
-  "bottom": HEIGHT/3*2 + SIZE*2,
+  "top": top,
+  "bottom": top + SIZE*4,
   "left": WIDTH/2 - SIZE*2,
   "right": WIDTH/2 + SIZE*2
 }
@@ -37,13 +39,14 @@ PLAYER_BOUNDS = {
 # fonts
 FONT = lambda x: pygame.font.SysFont("consolas.ttf", x)
 TITLEFONT = FONT(70)
+GAMEOVER_FONT = FONT(50)
 
 # file locations
 from os import path
 PATH_TO_ATLAS_IMAGE = path.join("assets", "images", "atlas.bmp")
 PATH_TO_LEVELS = path.join("assets", "levels", "levels")
 
-def handle_events(player, mouse, state):
+def handle_events(player, mouse, state, blocks, pen):
   for event in pygame.event.get():
     #if the "x" button is pressed ...
     if event.type == pygame.QUIT:
@@ -77,19 +80,32 @@ def handle_events(player, mouse, state):
       if event.type == pygame.KEYDOWN:
         if event.key == pygame.K_g:
           state.set_state("game")
+      
+      if event.type == pygame.MOUSEBUTTONDOWN:
+        pen.draw(blocks, mouse)
 
 def process_game(player, blocks, state):
   if state.get_state() == "game":
-    blocks.move()
-    player.update()
-    print(player.collide(blocks.get_rects()))
-    blocks.cull(HEIGHT)
+    if state.get_substate() == "game over":
+      pass
+    elif state.get_substate == "paused":
+      pass
+    else:
+      blocks.move()
+      player.update()
+      if player.collide(blocks.get_rects()):
+        print("over", state.get_substate())
+        state.set_substate("game over")
+      blocks.cull(HEIGHT)
 
-def draw(WIN, player, blocks, state):
+def draw(WIN, player, blocks, state, pen, mouse):
   WIN.fill(BLACK)
   if state.get_state() == "game":
     player.draw(WIN)
     blocks.draw(WIN)
+    if state.get_substate() == "game over":
+      text = GAMEOVER_FONT.render("Game Over", 1, WHITE, BLACK)
+      WIN.blit(text, (WIDTH/2 - text.get_width()/2, HEIGHT/3))
     
   if state.get_state() == "editor":
     blocks.draw(WIN)
@@ -99,7 +115,8 @@ def draw(WIN, player, blocks, state):
         WIN,
         WHITE,
         (PLAYER_BOUNDS["left"] + SIZE*i, 0),
-        (PLAYER_BOUNDS["left"] + SIZE*i, HEIGHT)
+        (PLAYER_BOUNDS["left"] + SIZE*i, HEIGHT),
+        3
         )
     
     for i in range(0, 5):
@@ -107,7 +124,13 @@ def draw(WIN, player, blocks, state):
         WIN,
         WHITE,
         (0, PLAYER_BOUNDS["top"] + SIZE*i),
-        (WIDTH, PLAYER_BOUNDS["top"] + SIZE*i))
+        (WIDTH, PLAYER_BOUNDS["top"] + SIZE*i),
+        3
+        )
+    
+    pen.preview(mouse, WIN)
+    pen.draw_grid(WIN)
+    
     
   pygame.display.update()
 
@@ -123,6 +146,7 @@ def main():
   #from components.textures import TextureAtlas
   from components.player import Player
   from components.blocks import Block, Blocks
+  from components.drawer import Drawer
   
   # GAME VARIABLES
   state = State("game")
@@ -130,8 +154,10 @@ def main():
   player_surface.fill(WHITE)
   player = Player(PLAYER_BOUNDS["left"], PLAYER_BOUNDS["top"], player_surface, PLAYER_BOUNDS)
   
+  pen = Drawer(SIZE, SIZE, WHITE, 3, 0.7, 10, PLAYER_BOUNDS)
+  
   temp_blocks = [
-    Block(PLAYER_BOUNDS["left"] + SIZE*i2, -i*3*SIZE, SIZE, SIZE, WHITE, 5, 0.7) for i in range(1000) for i2 in range(2)
+    Block(PLAYER_BOUNDS["left"] + SIZE*i2, -i*3*SIZE, SIZE, SIZE, WHITE, 3, 0.7) for i in range(1000) for i2 in range(2)
   ]
   
   blocks = Blocks(*temp_blocks)
@@ -153,10 +179,10 @@ def main():
     mouse = pygame.mouse.get_pos()
     
     #for everything that the user has inputted ...
-    handle_events(player, mouse, state)
+    handle_events(player, mouse, state, blocks, pen)
     
     process_game(player, blocks, state)
     
-    draw(WIN, player, blocks, state)
+    draw(WIN, player, blocks, state, pen, mouse)
 
 main()
