@@ -48,25 +48,23 @@ class Drawer:
       self.erase(blocks, mouse)
   
   def erase(self, blocks, mouse):
-    blocks.sort(key = lambda rect: rect.bottom, reverse = True)
-    i = 0
-    while blocks[i].bottom >= 0:
-      if blocks[i].collidepoint(mouse):
-        blocks.pop(i)
-        return True
-      i += 1
-      if i >= len(blocks):
-        return False
-    return False
-  
+    remove = []
+    for block in blocks:
+      if block.collidepoint(mouse):
+        remove.append(block)
+
+    for block in remove:
+      blocks.remove(block)
+    
   def preview(self, mouse, window):
-    preview = Surface((self.width, self.height))
-    preview.fill(self.colour)
-    preview.set_alpha(150)
-    if self.snap_grid == False:
-      window.blit(preview, mouse)
-    else:
-      window.blit(preview, self.snap_to(mouse))
+    if self.type == "draw":
+      preview = Surface((self.width, self.height))
+      preview.fill(self.colour)
+      preview.set_alpha(150)
+      if self.snap_grid == False:
+        window.blit(preview, mouse)
+      else:
+        window.blit(preview, self.snap_to(mouse))
   
   def draw_grid(self, window):
     """only draws the grid if view_grid is true"""
