@@ -75,14 +75,17 @@ def handle_events(player, mouse, state, blocks, pen):
         
         elif event.key == pygame.K_e:
           state.set_state("editor")
+          state.set_substate("paused")
     
     elif state.get_state() == "editor":
       if event.type == pygame.KEYDOWN:
         if event.key == pygame.K_g:
           state.set_state("game")
+          state.set_substate("play")
       
-      if event.type == pygame.MOUSEBUTTONDOWN:
-        pen.draw(blocks, mouse)
+      if state.get_substate() == "paused":
+        if event.type == pygame.MOUSEBUTTONDOWN:
+          pen.draw(blocks, mouse)
 
 def process_game(player, blocks, state):
   if state.get_state() == "game":
@@ -128,8 +131,9 @@ def draw(WIN, player, blocks, state, pen, mouse):
         3
         )
     
-    pen.preview(mouse, WIN)
-    pen.draw_grid(WIN)
+    if state.get_substate() == "paused":
+      pen.preview(mouse, WIN)
+      pen.draw_grid(WIN)
     
     
   pygame.display.update()

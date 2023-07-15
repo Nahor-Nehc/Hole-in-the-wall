@@ -6,8 +6,8 @@ class State:
     self.substates = {
       "start":[],
       "menu":["level select"],
-      "game":["paused", "game over"],
-      "editor":[],
+      "game":["paused", "game over", "play"],
+      "editor":["play", "paused"],
     }
     
     self.substate = None
