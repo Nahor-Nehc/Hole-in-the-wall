@@ -63,15 +63,16 @@ def handle_events(player, mouse, state, blocks, pen):
       sys.exit()
       
     if state.get_state() == "game":
-      if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_LEFT:
-          player.move(-1*SIZE, 0)
-        elif event.key == pygame.K_RIGHT:
-          player.move(SIZE, 0)
-        elif event.key == pygame.K_UP:
-          player.move(0, -1 * SIZE)
-        elif event.key == pygame.K_DOWN:
-          player.move(0, SIZE)
+      if state.get_state() == "play":
+        if event.type == pygame.KEYDOWN:
+          if event.key == pygame.K_LEFT:
+            player.move(-1*SIZE, 0)
+          elif event.key == pygame.K_RIGHT:
+            player.move(SIZE, 0)
+          elif event.key == pygame.K_UP:
+            player.move(0, -1 * SIZE)
+          elif event.key == pygame.K_DOWN:
+            player.move(0, SIZE)
         
         elif event.key == pygame.K_e:
           state.set_state("editor")
