@@ -3,6 +3,7 @@ __pycache__/
 *$py.class
 
 .vscode/
+.timetracker
 
 # C extensions
 *.so

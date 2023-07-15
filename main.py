@@ -27,6 +27,7 @@ pygame.display.set_caption("Hole in the wall")
 
 # sizes
 SIZE = round(WIDTH/(11.2))
+PADDING = SIZE/3
 
 top = int(HEIGHT/3*2 - SIZE*2)
 PLAYER_BOUNDS = {
@@ -35,6 +36,21 @@ PLAYER_BOUNDS = {
   "left": WIDTH/2 - SIZE*2,
   "right": WIDTH/2 + SIZE*2
 }
+
+# right control panel
+x = PLAYER_BOUNDS["right"] + PADDING
+y = PADDING
+width =  round(HEIGHT - PLAYER_BOUNDS["right"] - PADDING*2)
+height = round(PLAYER_BOUNDS["top"] - PADDING*2)
+
+PLAY_BUTTON = pygame.Rect(x, y, (width-PADDING*2)/3, (width-PADDING*2)/3)
+
+# user events
+TO_GAME = pygame.USEREVENT + 1
+TO_EDITOR = pygame.USEREVENT + 2
+EDITOR_PLAY = pygame.USEREVENT + 3
+USEREVENTS = [TO_GAME, TO_EDITOR, EDITOR_PLAY]
+
 
 # fonts
 FONT = lambda x: pygame.font.SysFont("consolas.ttf", x)
@@ -46,7 +62,8 @@ from os import path
 PATH_TO_ATLAS_IMAGE = path.join("assets", "images", "atlas.bmp")
 PATH_TO_LEVELS = path.join("assets", "levels", "levels")
 
-def handle_events(player, mouse, state, blocks, pen):
+def handle_events(player, mouse, state, blocks, pen, buttons):
+  
   for event in pygame.event.get():
     #if the "x" button is pressed ...
     if event.type == pygame.QUIT:
@@ -62,8 +79,11 @@ def handle_events(player, mouse, state, blocks, pen):
       import sys
       sys.exit()
       
+    if event.type == pygame.MOUSEBUTTONDOWN:
+      buttons.check(mouse)
+      
     if state.get_state() == "game":
-      if state.get_state() == "play":
+      if state.get_substate() == "play":
         if event.type == pygame.KEYDOWN:
           if event.key == pygame.K_LEFT:
             player.move(-1*SIZE, 0)
@@ -74,19 +94,43 @@ def handle_events(player, mouse, state, blocks, pen):
           elif event.key == pygame.K_DOWN:
             player.move(0, SIZE)
         
-        elif event.key == pygame.K_e:
-          state.set_state("editor")
-          state.set_substate("paused")
+          elif event.key == pygame.K_e:
+            pygame.event.post(pygame.event.Event(TO_EDITOR))
     
     elif state.get_state() == "editor":
       if event.type == pygame.KEYDOWN:
         if event.key == pygame.K_g:
-          state.set_state("game")
-          state.set_substate("play")
+          pygame.event.post(pygame.event.Event(TO_GAME))
+      if state.get_substate() == "play":
+        if event.type == pygame.KEYDOWN:
+          if event.key == pygame.K_LEFT:
+            player.move(-1*SIZE, 0)
+          elif event.key == pygame.K_RIGHT:
+            player.move(SIZE, 0)
+          elif event.key == pygame.K_UP:
+            player.move(0, -1 * SIZE)
+          elif event.key == pygame.K_DOWN:
+            player.move(0, SIZE)
       
       if state.get_substate() == "paused":
         if event.type == pygame.MOUSEBUTTONDOWN:
           pen.draw(blocks, mouse)
+    
+    if event.type == TO_GAME:
+      state.set_state("game")
+      state.set_substate("play")
+      buttons.toggleVis(PLAY_BUTTON)
+    
+    elif event.type == TO_EDITOR:
+      state.set_state("editor")
+      state.set_substate("paused")
+      buttons.toggleVis(PLAY_BUTTON)
+      
+    elif event.type == EDITOR_PLAY:
+      if state.get_substate() == "paused":
+        state.set_substate("play")
+      else:
+        state.set_substate("paused")
 
 def process_game(player, blocks, state):
   if state.get_state() == "game":
@@ -101,8 +145,13 @@ def process_game(player, blocks, state):
         print("over", state.get_substate())
         state.set_substate("game over")
       blocks.cull(HEIGHT)
+  if state.get_state() == "editor":
+    if state.get_substate() == "play":
+      blocks.move()
+      player.update()
+      blocks.cull(HEIGHT)
 
-def draw(WIN, player, blocks, state, pen, mouse):
+def draw(WIN, player, blocks, state, pen, mouse, buttons):
   WIN.fill(BLACK)
   if state.get_state() == "game":
     player.draw(WIN)
@@ -113,28 +162,33 @@ def draw(WIN, player, blocks, state, pen, mouse):
     
   if state.get_state() == "editor":
     blocks.draw(WIN)
+    buttons.draw(WIN)
     
-    for i in range(0, 5):
-      pygame.draw.line(
-        WIN,
-        WHITE,
-        (PLAYER_BOUNDS["left"] + SIZE*i, 0),
-        (PLAYER_BOUNDS["left"] + SIZE*i, HEIGHT),
-        3
-        )
-    
-    for i in range(0, 5):
-      pygame.draw.line(
-        WIN,
-        WHITE,
-        (0, PLAYER_BOUNDS["top"] + SIZE*i),
-        (WIDTH, PLAYER_BOUNDS["top"] + SIZE*i),
-        3
-        )
+    if state.get_substate() == "play":
+      player.draw(WIN)
     
     if state.get_substate() == "paused":
-      pen.preview(mouse, WIN)
       pen.draw_grid(WIN)
+      pen.preview(mouse, WIN)
+      
+      
+      for i in range(0, 5):
+        pygame.draw.line(
+          WIN,
+          WHITE,
+          (PLAYER_BOUNDS["left"] + SIZE*i, 0),
+          (PLAYER_BOUNDS["left"] + SIZE*i, HEIGHT),
+          3
+          )
+      
+      for i in range(0, 5):
+        pygame.draw.line(
+          WIN,
+          WHITE,
+          (0, PLAYER_BOUNDS["top"] + SIZE*i),
+          (WIDTH, PLAYER_BOUNDS["top"] + SIZE*i),
+          3
+          )
     
     
   pygame.display.update()
@@ -145,21 +199,27 @@ def main():
   # remove unnecessary events from event list
   pygame.event.set_blocked(None)
   pygame.event.set_allowed([pygame.QUIT, pygame.KEYUP, pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
-  #pygame.event.set_allowed(USEREVENTS)
+  pygame.event.set_allowed(USEREVENTS)
   
   from components.state import State
   #from components.textures import TextureAtlas
   from components.player import Player
   from components.blocks import Block, Blocks
   from components.drawer import Drawer
+  from components.button import Buttons
   
   # GAME VARIABLES
   state = State("game")
+  state.set_substate("play")
   player_surface = pygame.Surface((SIZE, SIZE))
   player_surface.fill(WHITE)
   player = Player(PLAYER_BOUNDS["left"], PLAYER_BOUNDS["top"], player_surface, PLAYER_BOUNDS)
   
   pen = Drawer(SIZE, SIZE, WHITE, 3, 0.7, 10, PLAYER_BOUNDS)
+  
+  buttons = Buttons()
+  
+  buttons.create(PLAY_BUTTON, BLACK, EDITOR_PLAY, 1, GREY, False)
   
   temp_blocks = [
     Block(PLAYER_BOUNDS["left"] + SIZE*i2, -i*3*SIZE, SIZE, SIZE, WHITE, 3, 0.7) for i in range(1000) for i2 in range(2)
@@ -184,10 +244,10 @@ def main():
     mouse = pygame.mouse.get_pos()
     
     #for everything that the user has inputted ...
-    handle_events(player, mouse, state, blocks, pen)
+    handle_events(player, mouse, state, blocks, pen, buttons)
     
     process_game(player, blocks, state)
     
-    draw(WIN, player, blocks, state, pen, mouse)
+    draw(WIN, player, blocks, state, pen, mouse, buttons)
 
 main()
