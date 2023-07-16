@@ -43,13 +43,17 @@ class Block(Rect):
   
   def move(self):
     self.move_generic(0, self.speed)
-
+  
+  def get_initial_rect(self, times):
+    newtop = self.top - times*self.speed
+    return Block(self.left, newtop, self.width, self.height, self.colour, self.speed, self.collision_rect)
 
 class Blocks(MutableSequence):
   def __init__(self, *blocks):
     self.blocks = list(blocks)
     self.see_collision_box = False
     self.sort()
+    self.times = 0
   
   def sort(self):
     self.blocks.sort(key = lambda block: block.bottom, reverse=True)
@@ -87,6 +91,20 @@ class Blocks(MutableSequence):
   def move(self):
     for block in self.blocks:
       block.move()
+    
+    self.times += 1
+  
+  def get_start_position_blocks(self):
+    starting_blocks = Blocks()
+    for block in self.blocks:
+      starting_blocks.add(block.get_initial_rect(self.times))
+    
+    return starting_blocks
+  
+  def fast_forward(self, increment):
+    self.times += increment
+    for block in self.blocks:
+      block.move_generic(0, increment * block.speed)
   
   def create(self, left, top, width, height, colour, speed, collision_rect_decimal:float):
     new_block = Block(left, top, width, height, colour, speed, collision_rect_decimal, self)

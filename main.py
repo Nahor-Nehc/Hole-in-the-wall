@@ -43,13 +43,21 @@ y = PADDING
 width =  round(HEIGHT - PLAYER_BOUNDS["right"] - PADDING*2)
 height = round(PLAYER_BOUNDS["top"] - PADDING*2)
 
-PLAY_BUTTON = pygame.Rect(x, y, (width-PADDING*2)/3, (width-PADDING*2)/3)
+# buttons on right control panel
+b_width = (width-PADDING*2)/3
+b_height = (width-PADDING*2)/3
+
+FAST_BACKWARD_BUTTON = pygame.Rect(x, y, b_width, b_height)
+PLAY_BUTTON = pygame.Rect(x + PADDING + b_width, y, b_width, b_height)
+FAST_FORWARD_BUTTON = pygame.Rect(x + PADDING*2 + b_width*2, y, b_width, b_height)
 
 # user events
 TO_GAME = pygame.USEREVENT + 1
 TO_EDITOR = pygame.USEREVENT + 2
 EDITOR_PLAY = pygame.USEREVENT + 3
-USEREVENTS = [TO_GAME, TO_EDITOR, EDITOR_PLAY]
+FAST_BACKWARD = pygame.USEREVENT + 4
+FAST_FORWARD = pygame.USEREVENT + 5
+USEREVENTS = [TO_GAME, TO_EDITOR, EDITOR_PLAY, FAST_BACKWARD, FAST_FORWARD]
 
 
 # fonts
@@ -120,17 +128,30 @@ def handle_events(player, mouse, state, blocks, pen, buttons):
       state.set_state("game")
       state.set_substate("play")
       buttons.toggleVis(PLAY_BUTTON)
+      buttons.toggleVis(FAST_BACKWARD_BUTTON)
+      buttons.toggleVis(FAST_FORWARD_BUTTON)
     
     elif event.type == TO_EDITOR:
       state.set_state("editor")
       state.set_substate("paused")
       buttons.toggleVis(PLAY_BUTTON)
+      buttons.toggleVis(FAST_BACKWARD_BUTTON)
+      buttons.toggleVis(FAST_FORWARD_BUTTON)
       
     elif event.type == EDITOR_PLAY:
+      print("play")
       if state.get_substate() == "paused":
         state.set_substate("play")
       else:
         state.set_substate("paused")
+    
+    elif event.type == FAST_BACKWARD:
+      print("back", blocks.times)
+      blocks.fast_forward(-10)
+    
+    elif event.type == FAST_FORWARD:
+      print("forward")
+      blocks.fast_forward(10)
 
 def process_game(player, blocks, state):
   if state.get_state() == "game":
@@ -145,6 +166,7 @@ def process_game(player, blocks, state):
         print("over", state.get_substate())
         state.set_substate("game over")
       blocks.cull(HEIGHT)
+
   if state.get_state() == "editor":
     if state.get_substate() == "play":
       blocks.move()
@@ -171,25 +193,11 @@ def draw(WIN, player, blocks, state, pen, mouse, buttons):
       pen.draw_grid(WIN)
       pen.preview(mouse, WIN)
       
+      for i in range(0, 5):
+        pygame.draw.line(WIN, WHITE, (PLAYER_BOUNDS["left"] + SIZE*i, 0), (PLAYER_BOUNDS["left"] + SIZE*i, HEIGHT), 3)
       
       for i in range(0, 5):
-        pygame.draw.line(
-          WIN,
-          WHITE,
-          (PLAYER_BOUNDS["left"] + SIZE*i, 0),
-          (PLAYER_BOUNDS["left"] + SIZE*i, HEIGHT),
-          3
-          )
-      
-      for i in range(0, 5):
-        pygame.draw.line(
-          WIN,
-          WHITE,
-          (0, PLAYER_BOUNDS["top"] + SIZE*i),
-          (WIDTH, PLAYER_BOUNDS["top"] + SIZE*i),
-          3
-          )
-    
+        pygame.draw.line(WIN, WHITE, (0, PLAYER_BOUNDS["top"] + SIZE*i), (WIDTH, PLAYER_BOUNDS["top"] + SIZE*i), 3)
     
   pygame.display.update()
 
@@ -220,6 +228,8 @@ def main():
   buttons = Buttons()
   
   buttons.create(PLAY_BUTTON, BLACK, EDITOR_PLAY, 1, GREY, False)
+  buttons.create(FAST_FORWARD_BUTTON, BLACK, FAST_FORWARD, 1, GREY, False)
+  buttons.create(FAST_BACKWARD_BUTTON, BLACK, FAST_BACKWARD, 1, GREY, False)
   
   temp_blocks = [
     Block(PLAYER_BOUNDS["left"] + SIZE*i2, -i*3*SIZE, SIZE, SIZE, WHITE, 3, 0.7) for i in range(1000) for i2 in range(2)
