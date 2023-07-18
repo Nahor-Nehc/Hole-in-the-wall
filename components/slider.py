@@ -81,3 +81,6 @@ class Slider:
       self.increment()
     elif self.button_left_rect.collidepoint(mouse):
       self.decrement()
+    
+  def get_value(self):
+    return self.current
