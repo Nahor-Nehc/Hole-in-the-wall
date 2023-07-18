@@ -1,5 +1,5 @@
 # from pygmtls
-from pygame import draw, event
+from pygame import draw, event, Surface
 
 class Buttons:
   """
@@ -19,9 +19,10 @@ class Buttons:
       "text" : 5,
       "font" : 6,
       "textColour" : 7,
+      "image": 8
     }
     
-  def create(self, rect, colour, event, outlineWidth = 0, outlineColour = (0, 0, 0), visible = True, text = "", font = None, textColour = (0, 0, 0)) -> None:
+  def create(self, rect, colour, event, outlineWidth = 0, outlineColour = (0, 0, 0), visible = True, text = "", font = None, textColour = (0, 0, 0), image = None) -> None:
     """
     This function creates a button
     
@@ -40,7 +41,7 @@ class Buttons:
     :param outlineColour: the colour of the border
     :type outlineColour: (R, G, B)
     """
-    temp = [rect, colour, event, outlineWidth, outlineColour, text, font, textColour]
+    temp = [rect, colour, event, outlineWidth, outlineColour, text, font, textColour, image]
     if visible == True:
       self.visible.append(temp)
     else:
@@ -49,12 +50,47 @@ class Buttons:
 
   def draw(self, window) -> None:
     for button in self.visible:
+      
+      # draws the rect of the button
       draw.rect(window, button[self.attrs["colour"]], button[self.attrs["rect"]])
+      
+      # draws the optional border of button
       if button[self.attrs["outlineWidth"]] != 0:
-        draw.rect(window, button[self.attrs["outlineColour"]], button[self.attrs["rect"]], button[self.attrs["outlineWidth"]])
+        draw.rect(
+          window,
+          button[self.attrs["outlineColour"]],
+          button[self.attrs["rect"]],
+          button[self.attrs["outlineWidth"]]
+          )
+        
+      # draws the text of the button
       if button[self.attrs["font"]] != None:
-        txt = button[self.attrs["font"]].render(button[self.attrs["text"]], 1, button[self.attrs["textColour"]])
-        window.blit(txt, (button[self.attrs["rect"]].centerx - txt.get_width()/2, button[self.attrs["rect"]].centery - txt.get_height()/2))
+        # gets the surface containing the text
+        txt = button[self.attrs["font"]].render(
+          button[self.attrs["text"]],
+          1,
+          button[self.attrs["textColour"]]
+          )
+        
+        # draws over the button
+        window.blit(
+          txt,
+          (
+            button[self.attrs["rect"]].centerx - txt.get_width()/2,
+            button[self.attrs["rect"]].centery - txt.get_height()/2
+            )
+          )
+      
+      # draws the image of the button over the button
+      if button[self.attrs["image"]] != None:
+        image = button[self.attrs["image"]]
+        window.blit(
+          image,
+          (
+            button[self.attrs["rect"]].centerx - image.get_width()/2,
+            button[self.attrs["rect"]].centery - image.get_height()/2
+            )
+          )
       
   def check(self, mouse) -> None:
     for button in self.visible:
