@@ -25,6 +25,8 @@ DBROWN = (159, 100,  64)
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Hole in the wall")
 
+# == # == # == # == # == #
+
 # sizes
 SIZE = round(WIDTH/(11.2))
 PADDING = SIZE/3
@@ -37,19 +39,35 @@ PLAYER_BOUNDS = {
   "right": WIDTH/2 + SIZE*2
 }
 
-# right control panel
-x = PLAYER_BOUNDS["right"] + PADDING
-y = PADDING
+# == # == # == # == # == #
+
+# control panel measurements
 width =  round(HEIGHT - PLAYER_BOUNDS["right"] - PADDING*2)
 height = round(PLAYER_BOUNDS["top"] - PADDING*2)
 
-# buttons on right control panel
 b_width = (width-PADDING*2)/3
 b_height = (width-PADDING*2)/3
 
+# right control panel
+x = PLAYER_BOUNDS["right"] + PADDING
+y = PADDING
+
+# buttons on right control panel
 FAST_BACKWARD_BUTTON = pygame.Rect(x, y, b_width, b_height)
 PLAY_BUTTON = pygame.Rect(x + PADDING + b_width, y, b_width, b_height)
 FAST_FORWARD_BUTTON = pygame.Rect(x + PADDING*2 + b_width*2, y, b_width, b_height)
+
+# left control panel
+x = PADDING
+y = PADDING
+
+# buttons on left control panel
+b_width = (width-PADDING*2)/3
+b_height = (width-PADDING*2)/3
+
+#tile_size_slider
+
+# == # == # == # == # == #
 
 # user events
 TO_GAME = pygame.USEREVENT + 1
@@ -59,18 +77,30 @@ FAST_BACKWARD = pygame.USEREVENT + 4
 FAST_FORWARD = pygame.USEREVENT + 5
 USEREVENTS = [TO_GAME, TO_EDITOR, EDITOR_PLAY, FAST_BACKWARD, FAST_FORWARD]
 
+# == # == # == # == # == #
 
 # fonts
 FONT = lambda x: pygame.font.SysFont("consolas.ttf", x)
 TITLEFONT = FONT(70)
 GAMEOVER_FONT = FONT(50)
 
+# == # == # == # == # == #
+
 # file locations
 from os import path
-PATH_TO_ATLAS_IMAGE = path.join("assets", "images", "atlas.bmp")
-PATH_TO_LEVELS = path.join("assets", "levels", "levels")
+PATH_TO_LEVELS = path.join("assets", "levels", "levels") # last levels is the shelve file itself
 
-def handle_events(player, mouse, state, blocks, pen, buttons):
+# == # == # == # == # == #
+
+# unicode characters
+FAST_FORWARD_IMAGE = pygame.transform.scale(pygame.image.load(path.join("assets", "images", "forward_button.png")), (b_width, b_height)).convert_alpha()
+PLAY_IMAGE = pygame.transform.scale(pygame.image.load(path.join("assets", "images", "play_button.png")), (b_width, b_height)).convert_alpha()
+PAUSE_IMAGE = pygame.transform.scale(pygame.image.load(path.join("assets", "images", "pause_button.png")), (b_width, b_height)).convert_alpha()
+FAST_BACKWARD_IMAGE = pygame.transform.scale(pygame.image.load(path.join("assets", "images", "back_button.png")), (b_width, b_height)).convert_alpha()
+
+# == # == # == # == # == #
+
+def handle_events(player, mouse, state, blocks, pen, buttons, sliders):
   
   for event in pygame.event.get():
     #if the "x" button is pressed ...
@@ -89,6 +119,7 @@ def handle_events(player, mouse, state, blocks, pen, buttons):
       
     if event.type == pygame.MOUSEBUTTONDOWN:
       buttons.check(mouse)
+      sliders.update(mouse)
       
     if state.get_state() == "game":
       if state.get_substate() == "play":
@@ -139,11 +170,12 @@ def handle_events(player, mouse, state, blocks, pen, buttons):
       buttons.toggleVis(FAST_FORWARD_BUTTON)
       
     elif event.type == EDITOR_PLAY:
-      print("play")
       if state.get_substate() == "paused":
         state.set_substate("play")
+        buttons.changeAttr(PLAY_BUTTON, "image", PAUSE_IMAGE)
       else:
         state.set_substate("paused")
+        buttons.changeAttr(PLAY_BUTTON, "image", PLAY_IMAGE)
     
     elif event.type == FAST_BACKWARD:
       print("back", blocks.times)
@@ -152,6 +184,8 @@ def handle_events(player, mouse, state, blocks, pen, buttons):
     elif event.type == FAST_FORWARD:
       print("forward")
       blocks.fast_forward(10)
+
+# == # == # == # == # == #
 
 def process_game(player, blocks, state):
   if state.get_state() == "game":
@@ -173,9 +207,14 @@ def process_game(player, blocks, state):
       player.update()
       blocks.cull(HEIGHT)
 
-def draw(WIN, player, blocks, state, pen, mouse, buttons):
+# == # == # == # == # == #
+
+def draw(WIN, player, blocks, state, pen, mouse, buttons, sliders):
   WIN.fill(BLACK)
   if state.get_state() == "game":
+    
+    pygame.draw.rect(WIN, GREY, pygame.Rect(PLAYER_BOUNDS["left"], PLAYER_BOUNDS["top"], SIZE*4, SIZE*4), 1)
+    
     player.draw(WIN)
     blocks.draw(WIN)
     if state.get_substate() == "game over":
@@ -197,9 +236,12 @@ def draw(WIN, player, blocks, state, pen, mouse, buttons):
         pygame.draw.line(WIN, WHITE, (PLAYER_BOUNDS["left"] + SIZE*i, 0), (PLAYER_BOUNDS["left"] + SIZE*i, HEIGHT), 3)
       
       for i in range(0, 5):
-        pygame.draw.line(WIN, WHITE, (0, PLAYER_BOUNDS["top"] + SIZE*i), (WIDTH, PLAYER_BOUNDS["top"] + SIZE*i), 3)
-    
+        pygame.draw.line(WIN, WHITE, (PLAYER_BOUNDS["left"], PLAYER_BOUNDS["top"] + SIZE*i), (PLAYER_BOUNDS["right"], PLAYER_BOUNDS["top"] + SIZE*i), 3)
+  
+  sliders.draw(WIN)
   pygame.display.update()
+
+# == # == # == # == # == #
 
 def main():
   clock = pygame.time.Clock()
@@ -215,6 +257,7 @@ def main():
   from components.blocks import Block, Blocks
   from components.drawer import Drawer
   from components.button import Buttons
+  from components.slider import Slider, Sliders
   
   # GAME VARIABLES
   state = State("game")
@@ -227,9 +270,9 @@ def main():
   
   buttons = Buttons()
   
-  buttons.create(PLAY_BUTTON, BLACK, EDITOR_PLAY, 1, GREY, False)
-  buttons.create(FAST_FORWARD_BUTTON, BLACK, FAST_FORWARD, 1, GREY, False)
-  buttons.create(FAST_BACKWARD_BUTTON, BLACK, FAST_BACKWARD, 1, GREY, False)
+  buttons.create(PLAY_BUTTON, BLACK, EDITOR_PLAY, 1, GREY, False, image = PLAY_IMAGE)
+  buttons.create(FAST_FORWARD_BUTTON, BLACK, FAST_FORWARD, 1, GREY, False, image = FAST_FORWARD_IMAGE)
+  buttons.create(FAST_BACKWARD_BUTTON, BLACK, FAST_BACKWARD, 1, GREY, False, image = FAST_BACKWARD_IMAGE)
   
   temp_blocks = [
     Block(PLAYER_BOUNDS["left"] + SIZE*i2, -i*3*SIZE, SIZE, SIZE, WHITE, 3, 0.7) for i in range(1000) for i2 in range(2)
@@ -237,6 +280,9 @@ def main():
   
   blocks = Blocks(*temp_blocks)
   blocks.toggle_see_collision_box()
+  
+  test = Slider(10, 100, 5, pygame.Rect(100, 100, 200, 20))
+  sliders = Sliders(test)
   
   #texture_atlas = TextureAtlas(PATH_TO_ATLAS_IMAGE)
   
@@ -254,10 +300,13 @@ def main():
     mouse = pygame.mouse.get_pos()
     
     #for everything that the user has inputted ...
-    handle_events(player, mouse, state, blocks, pen, buttons)
+    handle_events(player, mouse, state, blocks, pen, buttons, sliders)
     
     process_game(player, blocks, state)
     
-    draw(WIN, player, blocks, state, pen, mouse, buttons)
+    draw(WIN, player, blocks, state, pen, mouse, buttons, sliders)
+    
+
+# == # == # == # == # == #
 
 main()
