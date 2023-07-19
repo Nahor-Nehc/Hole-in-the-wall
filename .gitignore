@@ -4,6 +4,7 @@ __pycache__/
 
 .vscode/
 .timetracker
+quick_fixes.txt
 
 # C extensions
 *.so
