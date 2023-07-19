@@ -116,11 +116,15 @@ def handle_events(player, mouse, state, blocks, pen, buttons, sliders):
       #terminates system
       import sys
       sys.exit()
-      
+    
+    # CLASS UPDATERS
+    sliders.update(pygame.mouse)
+
     if event.type == pygame.MOUSEBUTTONDOWN:
-      buttons.check(mouse)
-      sliders.update(mouse)
+      if pygame.mouse.get_pressed()[0]:
+        buttons.check(mouse)
       
+    # GAME MODE
     if state.get_state() == "game":
       if state.get_substate() == "play":
         if event.type == pygame.KEYDOWN:
@@ -136,10 +140,12 @@ def handle_events(player, mouse, state, blocks, pen, buttons, sliders):
           elif event.key == pygame.K_e:
             pygame.event.post(pygame.event.Event(TO_EDITOR))
     
+    # EDITOR MODE
     elif state.get_state() == "editor":
       if event.type == pygame.KEYDOWN:
         if event.key == pygame.K_g:
           pygame.event.post(pygame.event.Event(TO_GAME))
+
       if state.get_substate() == "play":
         if event.type == pygame.KEYDOWN:
           if event.key == pygame.K_LEFT:
@@ -152,9 +158,16 @@ def handle_events(player, mouse, state, blocks, pen, buttons, sliders):
             player.move(0, SIZE)
       
       if state.get_substate() == "paused":
+        print("paused")
         if event.type == pygame.MOUSEBUTTONDOWN:
-          pen.draw(blocks, mouse)
+          if pygame.mouse.get_pressed()[0]:
+            pen.draw(blocks, mouse)
+        
+        elif event.type == pygame.MOUSEWHEEL:
+          print("detect")
+          blocks.scrolled(event.y)
     
+    # USEREVENTS
     if event.type == TO_GAME:
       state.set_state("game")
       state.set_substate("play")
@@ -191,7 +204,7 @@ def process_game(player, blocks, state):
   if state.get_state() == "game":
     if state.get_substate() == "game over":
       pass
-    elif state.get_substate == "paused":
+    elif state.get_substate() == "paused":
       pass
     else:
       blocks.move()
@@ -205,7 +218,6 @@ def process_game(player, blocks, state):
     if state.get_substate() == "play":
       blocks.move()
       player.update()
-      blocks.cull(HEIGHT)
 
 # == # == # == # == # == #
 
@@ -248,7 +260,7 @@ def main():
   
   # remove unnecessary events from event list
   pygame.event.set_blocked(None)
-  pygame.event.set_allowed([pygame.QUIT, pygame.KEYUP, pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
+  pygame.event.set_allowed([pygame.QUIT, pygame.KEYUP, pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.MOUSEWHEEL])
   pygame.event.set_allowed(USEREVENTS)
   
   from components.state import State
@@ -296,7 +308,6 @@ def main():
     #ticks the clock
     clock.tick(FPS)
 
-    #gets mouse position
     mouse = pygame.mouse.get_pos()
     
     #for everything that the user has inputted ...

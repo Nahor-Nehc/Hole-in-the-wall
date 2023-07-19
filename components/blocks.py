@@ -122,3 +122,6 @@ class Blocks(MutableSequence):
     
     for item in remove:
       self.blocks.remove(item)    
+  
+  def scrolled(self, y):
+    self.fast_forward(y)
