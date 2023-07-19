@@ -29,6 +29,7 @@ class Slider:
     self.surface.fill((0, 0, 0))
     
     self.current = self.min
+    self.visible = True
     
     # slider buttons
     self.buttons_size = self.rect.height
@@ -47,6 +48,15 @@ class Slider:
     draw.line(self.button_right, (255, 255, 255), (0, self.buttons_size//2), (self.buttons_size, self.buttons_size//2), 3)
     draw.line(self.button_left, (255, 255, 255), (0, self.buttons_size//2), (self.buttons_size, self.buttons_size//2), 3)
 
+  def set_visible(self):
+    self.visible = True
+    
+  def set_invisible(self):
+    self.visible = False
+  
+  def toggle_visibility(self):
+    self.visible = not self.visible
+
   def increment(self):
     self.current += self.step
     self.current = min(self.current, self.max)
@@ -56,31 +66,34 @@ class Slider:
     self.current = max(self.current, self.min)
   
   def draw(self, window):
-    self.surface.fill((0, 0, 0))
-    x = self.rect.x
-    y = self.rect.y
-    
-    # draw slider buttons
-    self.surface.blit(self.button_left, (0, 0))
-    self.surface.blit(self.button_right, (self.surface.get_width() - self.buttons_size, 0))
-    
-    # draw slider line
-    start_x = self.buttons_size*3//2
-    end_x = self.surface.get_width() - (self.buttons_size*3//2)
-    draw.line(self.surface, (111, 111, 111), (start_x, self.buttons_size//2), (end_x, self.buttons_size//2), 3)
-    
-    # draw slider dot
-    x_offset = round(((self.current - self.min) / self.range) * (end_x - start_x))
-    draw.circle(self.surface, (255, 255, 255), (start_x + x_offset, self.buttons_size//2 + 1), 4, 1)
-    
-    # draw slider to window
-    window.blit(self.surface, (x, y))
+    if self.visible == True:
+      self.surface.fill((0, 0, 0))
+      x = self.rect.x
+      y = self.rect.y
+      
+      # draw slider buttons
+      self.surface.blit(self.button_left, (0, 0))
+      self.surface.blit(self.button_right, (self.surface.get_width() - self.buttons_size, 0))
+      
+      # draw slider line
+      start_x = self.buttons_size*3//2
+      end_x = self.surface.get_width() - (self.buttons_size*3//2)
+      draw.line(self.surface, (111, 111, 111), (start_x, self.buttons_size//2), (end_x, self.buttons_size//2), 3)
+      
+      # draw slider dot
+      x_offset = round(((self.current - self.min) / self.range) * (end_x - start_x))
+      draw.circle(self.surface, (255, 255, 255), (start_x + x_offset, self.buttons_size//2 + 1), 4, 1)
+      
+      # draw slider to window
+      window.blit(self.surface, (x, y))
   
   def update(self, mouse):
-    if self.button_right_rect.collidepoint(mouse):
-      self.increment()
-    elif self.button_left_rect.collidepoint(mouse):
-      self.decrement()
+    pos = mouse.get_pos()
+    if mouse.get_pressed()[0]:
+      if self.button_right_rect.collidepoint(pos):
+        self.increment()
+      elif self.button_left_rect.collidepoint(pos):
+        self.decrement()
     
   def get_value(self):
     return self.current
