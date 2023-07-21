@@ -17,14 +17,17 @@ class Player:
   
   def collide(self, rects:list):
     rects.sort(key = lambda rect: rect.bottom, reverse = True)
-    i = 0
-    while rects[i].bottom >= self.bounds["top"]:
-      if self.rect.colliderect(rects[i]):
-        return True
-      i += 1
-      if i >= len(rects):
-        return False
-    return False
+    if len(rects) > 0:
+      i = 0
+      while rects[i].bottom >= self.bounds["top"]:
+        if self.rect.colliderect(rects[i]):
+          return True
+        i += 1
+        if i >= len(rects):
+          return False
+      return False
+    else:
+      return False
       
   def update(self):
     if self.rect.x < self.bounds["left"]:
