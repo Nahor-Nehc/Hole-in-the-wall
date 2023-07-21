@@ -32,7 +32,7 @@ class Sliders:
     return None
 
 class Slider:
-  def __init__(self, min:int, max:int, step:float, rect:Rect, show_buttons = True, draggable_slider = True, top_bar = False, name = "", font = None, value_display = False):
+  def __init__(self, min:int, max:int, default:int, step:float, rect:Rect, show_buttons = True, draggable_slider = True, top_bar = False, name = "", font = None, value_display = False):
     """rect is the size and place where all the components of the slider will go
     
     top_bar is where name and value display will go"""
@@ -42,6 +42,7 @@ class Slider:
     
     self.min = min
     self.max = max
+    self.default = default
     self.range = max-min
     self.step = step
     
@@ -55,7 +56,7 @@ class Slider:
     self.surface = Surface((self.rect.width, self.rect.height))
     self.surface.fill((0, 0, 0))
     
-    self.current = self.min
+    self.current = self.default
     self.visible = True
     
     # slider buttons
@@ -116,9 +117,6 @@ class Slider:
         self.surface.blit(text, (self.button_right_rect.x - text.get_width(), 0))
       
       # draw slider section
-      x = self.slider_rect.x
-      y = self.slider_rect.y
-      
       if self.show_buttons == True:
         # draw slider buttons
         self.slider_surface.blit(self.button_left, (0, 0))
