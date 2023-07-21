@@ -18,7 +18,7 @@ class Loader:
     
     try:
       _ = level_loader[level_name]
-      from pyautogui import confirm
+      from pyautogui import confirm # type:ignore
       check = confirm(text='WARNING: There is already a file saved here. Do you want to replace it?', title='WARNING: OVERWRITE ERROR', buttons=['Yes', 'No'])
       if check == "Yes":
         level_loader[level_name] = blocks
