@@ -108,7 +108,6 @@ class Blocks(MutableSequence):
   
   def create(self, left, top, width, height, colour, speed, collision_rect_decimal:float):
     new_block = Block(left, top, width, height, colour, speed, collision_rect_decimal, self)
-    self.append(new_block)
     self.sort()
   
   def get_rects(self):
