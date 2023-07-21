@@ -12,7 +12,7 @@ class Drawer:
     self.view_grid = True
     self.snap_grid = True
     
-    self.type = "erase" # out of ["draw", "erase"]
+    self.type = "draw" # out of ["draw", "erase"]
     
     self.bounds = bounds
     top = self.bounds["top"]
@@ -38,10 +38,12 @@ class Drawer:
     return (x, y)
     
   def draw(self, blocks, mouse):
-    if self.type == "draw":
+    if self.type == "draw" and self.bounds["left"] <= mouse[0] <= self.bounds["right"]:
       if self.snap_grid == False:
+        print("1")
         blocks.create(mouse[0], mouse[1], self.width, self.height, self.colour, self.speed, self.collision_rect_decimal)
       else:
+        print("2")
         snap = self.snap_to(mouse)
         blocks.create(snap[0], snap[1], self.width, self.height, self.colour, self.speed, self.collision_rect_decimal)
     elif self.type == "erase":
@@ -77,10 +79,18 @@ class Drawer:
         draw.line(window, (255, 255, 255), (left + i, 0), (left + i, window.get_height()))
       for i in range(self.vertical_offset, window.get_height(), self.grid_size):
         draw.line(window, (255, 255, 255), (left, i), (right, i))
-      
   
   def toggle_grid_view(self):
     self.view_grid = not self.view_grid
   
   def toggle_snap_grid(self):
     self.snap_grid = not self.snap_grid
+  
+  def set_width(self, width):
+    self.width = width
+  
+  def set_height(self, height):
+    self.height = height
+    
+  def set_speed(self, speed):
+    self.speed = speed

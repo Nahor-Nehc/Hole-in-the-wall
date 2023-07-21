@@ -48,6 +48,9 @@ height = round(PLAYER_BOUNDS["top"] - PADDING*2)
 b_width = (width-PADDING*2)/3
 b_height = (width-PADDING*2)/3
 
+s_width = width
+s_height = b_height
+
 # right control panel
 x = PLAYER_BOUNDS["right"] + PADDING
 y = PADDING
@@ -59,11 +62,13 @@ FAST_FORWARD_BUTTON = pygame.Rect(x + PADDING*2 + b_width*2, y, b_width, b_heigh
 
 # left control panel
 x = PADDING
-y = PADDING
+y = PADDING + SIZE
 
-# buttons on left control panel
-b_width = (width-PADDING*2)/3
-b_height = (width-PADDING*2)/3
+# buttons/sliders on left control panel
+
+BLOCK_WIDTH_SLIDER = pygame.Rect(x, y, s_width, s_height)
+BLOCK_HEIGHT_SLIDER = pygame.Rect(x, y + s_height + PADDING, s_width, s_height)
+BLOCK_SPEED_SLIDER = pygame.Rect(x, y + s_height*2 + PADDING*2, s_width, s_height)
 
 #tile_size_slider
 
@@ -83,6 +88,7 @@ USEREVENTS = [TO_GAME, TO_EDITOR, EDITOR_PLAY, FAST_BACKWARD, FAST_FORWARD]
 FONT = lambda x: pygame.font.SysFont("consolas.ttf", x)
 TITLEFONT = FONT(70)
 GAMEOVER_FONT = FONT(50)
+SLIDER_FONT = FONT(20)
 
 # == # == # == # == # == #
 
@@ -100,7 +106,7 @@ FAST_BACKWARD_IMAGE = pygame.transform.scale(pygame.image.load(path.join("assets
 
 # == # == # == # == # == #
 
-def handle_events(player, mouse, state, blocks, pen, buttons, sliders):
+def handle_events(player, mouse, state, blocks, pen, buttons, editor_sliders):
   
   for event in pygame.event.get():
     #if the "x" button is pressed ...
@@ -118,7 +124,7 @@ def handle_events(player, mouse, state, blocks, pen, buttons, sliders):
       sys.exit()
     
     # CLASS UPDATERS
-    sliders.update(pygame.mouse)
+    editor_sliders.update(pygame.mouse)
 
     if event.type == pygame.MOUSEBUTTONDOWN:
       if pygame.mouse.get_pressed()[0]:
@@ -158,13 +164,15 @@ def handle_events(player, mouse, state, blocks, pen, buttons, sliders):
             player.move(0, SIZE)
       
       if state.get_substate() == "paused":
-        print("paused")
         if event.type == pygame.MOUSEBUTTONDOWN:
           if pygame.mouse.get_pressed()[0]:
+            print()
+            print(blocks.blocks)
+            print("drew")
             pen.draw(blocks, mouse)
+            print(blocks.blocks)
         
         elif event.type == pygame.MOUSEWHEEL:
-          print("detect")
           blocks.scrolled(event.y)
     
     # USEREVENTS
@@ -174,6 +182,7 @@ def handle_events(player, mouse, state, blocks, pen, buttons, sliders):
       buttons.toggleVis(PLAY_BUTTON)
       buttons.toggleVis(FAST_BACKWARD_BUTTON)
       buttons.toggleVis(FAST_FORWARD_BUTTON)
+      editor_sliders.set_invisible()
     
     elif event.type == TO_EDITOR:
       state.set_state("editor")
@@ -181,6 +190,7 @@ def handle_events(player, mouse, state, blocks, pen, buttons, sliders):
       buttons.toggleVis(PLAY_BUTTON)
       buttons.toggleVis(FAST_BACKWARD_BUTTON)
       buttons.toggleVis(FAST_FORWARD_BUTTON)
+      editor_sliders.set_visible()
       
     elif event.type == EDITOR_PLAY:
       if state.get_substate() == "paused":
@@ -191,37 +201,44 @@ def handle_events(player, mouse, state, blocks, pen, buttons, sliders):
         buttons.changeAttr(PLAY_BUTTON, "image", PLAY_IMAGE)
     
     elif event.type == FAST_BACKWARD:
-      print("back", blocks.times)
       blocks.fast_forward(-10)
     
     elif event.type == FAST_FORWARD:
-      print("forward")
       blocks.fast_forward(10)
 
 # == # == # == # == # == #
 
-def process_game(player, blocks, state):
+def process_game(player, blocks, state, pen, editor_sliders):
   if state.get_state() == "game":
     if state.get_substate() == "game over":
       pass
     elif state.get_substate() == "paused":
       pass
-    else:
+    elif state.get_substate() == "play":
       blocks.move()
       player.update()
       if player.collide(blocks.get_rects()):
-        print("over", state.get_substate())
         state.set_substate("game over")
       blocks.cull(HEIGHT)
 
   if state.get_state() == "editor":
+    slider = editor_sliders.get(BLOCK_WIDTH_SLIDER)
+    if slider != None:
+      pen.set_width(slider.current)
+    slider = editor_sliders.get(BLOCK_HEIGHT_SLIDER)
+    if slider != None:
+      pen.set_height(slider.current)
+    slider = editor_sliders.get(BLOCK_SPEED_SLIDER)
+    if slider != None:
+      pen.set_speed(slider.current)
+      
     if state.get_substate() == "play":
       blocks.move()
       player.update()
 
 # == # == # == # == # == #
 
-def draw(WIN, player, blocks, state, pen, mouse, buttons, sliders):
+def draw(WIN, player, blocks, state, pen, mouse, buttons, editor_sliders):
   WIN.fill(BLACK)
   if state.get_state() == "game":
     
@@ -250,7 +267,7 @@ def draw(WIN, player, blocks, state, pen, mouse, buttons, sliders):
       for i in range(0, 5):
         pygame.draw.line(WIN, WHITE, (PLAYER_BOUNDS["left"], PLAYER_BOUNDS["top"] + SIZE*i), (PLAYER_BOUNDS["right"], PLAYER_BOUNDS["top"] + SIZE*i), 3)
   
-  sliders.draw(WIN)
+  editor_sliders.draw(WIN)
   pygame.display.update()
 
 # == # == # == # == # == #
@@ -287,14 +304,17 @@ def main():
   buttons.create(FAST_BACKWARD_BUTTON, BLACK, FAST_BACKWARD, 1, GREY, False, image = FAST_BACKWARD_IMAGE)
   
   temp_blocks = [
-    Block(PLAYER_BOUNDS["left"] + SIZE*i2, -i*3*SIZE, SIZE, SIZE, WHITE, 3, 0.7) for i in range(1000) for i2 in range(2)
+    Block(PLAYER_BOUNDS["left"] + SIZE*i2, -i*3*SIZE, SIZE, SIZE, WHITE, 3, 0.7) for i in range(10) for i2 in range(2)
   ]
   
   blocks = Blocks(*temp_blocks)
-  blocks.toggle_see_collision_box()
+  #blocks.toggle_see_collision_box()
   
-  test = Slider(10, 100, 5, pygame.Rect(100, 100, 200, 20))
-  sliders = Sliders(test)
+  block_width = Slider(5, 100, SIZE, 5, BLOCK_WIDTH_SLIDER, top_bar = True, name = "block width:", font = SLIDER_FONT, value_display=True)
+  block_height = Slider(5, 100, SIZE, 5, BLOCK_HEIGHT_SLIDER, top_bar = True, name = "block height:", font = SLIDER_FONT, value_display=True)
+  block_speed = Slider(1, 10, 3, 1, BLOCK_SPEED_SLIDER, top_bar = True, name = "block speed:", font = SLIDER_FONT, value_display=True)
+  editor_sliders = Sliders(block_width, block_height, block_speed)
+  editor_sliders.set_invisible()
   
   #texture_atlas = TextureAtlas(PATH_TO_ATLAS_IMAGE)
   
@@ -311,11 +331,14 @@ def main():
     mouse = pygame.mouse.get_pos()
     
     #for everything that the user has inputted ...
-    handle_events(player, mouse, state, blocks, pen, buttons, sliders)
+    handle_events(player, mouse, state, blocks, pen, buttons, editor_sliders)
     
-    process_game(player, blocks, state)
+    process_game(player, blocks, state, pen, editor_sliders)
     
-    draw(WIN, player, blocks, state, pen, mouse, buttons, sliders)
+    draw(WIN, player, blocks, state, pen, mouse, buttons, editor_sliders)
+    
+
+    print(len(blocks))
     
 
 # == # == # == # == # == #
