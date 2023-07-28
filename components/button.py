@@ -1,4 +1,4 @@
-# from pygmtls
+# from pygmtls w edits
 from pygame import draw, event, Surface
 
 class Buttons:
