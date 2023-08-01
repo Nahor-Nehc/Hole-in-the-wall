@@ -124,7 +124,6 @@ def handle_events(player, mouse, state, blocks, pen, buttons, editor_sliders):
       sys.exit()
     
     # CLASS UPDATERS
-    editor_sliders.update(pygame.mouse)
 
     if event.type == pygame.MOUSEBUTTONDOWN:
       if pygame.mouse.get_pressed()[0]:
@@ -166,11 +165,7 @@ def handle_events(player, mouse, state, blocks, pen, buttons, editor_sliders):
       if state.get_substate() == "paused":
         if event.type == pygame.MOUSEBUTTONDOWN:
           if pygame.mouse.get_pressed()[0]:
-            print()
-            print(blocks.blocks)
-            print("drew")
             pen.draw(blocks, mouse)
-            print(blocks.blocks)
         
         elif event.type == pygame.MOUSEWHEEL:
           blocks.scrolled(event.y)
@@ -209,6 +204,7 @@ def handle_events(player, mouse, state, blocks, pen, buttons, editor_sliders):
 # == # == # == # == # == #
 
 def process_game(player, blocks, state, pen, editor_sliders):
+  editor_sliders.update(pygame.mouse)
   if state.get_state() == "game":
     if state.get_substate() == "game over":
       pass
@@ -338,8 +334,6 @@ def main():
     draw(WIN, player, blocks, state, pen, mouse, buttons, editor_sliders)
     
 
-    print(len(blocks))
-    
 
 # == # == # == # == # == #
 

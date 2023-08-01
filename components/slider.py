@@ -10,8 +10,9 @@ class Sliders:
     
   def update(self, mouse):
     """call if mouse clicked"""
+    drag_available = not self.check_dragging()
     for slider in self.sliders:
-      slider.update(mouse)
+      slider.update(mouse, drag_available)
   
   def set_visible(self):
     for slider in self.sliders:
@@ -24,6 +25,12 @@ class Sliders:
   def toggle_visibility(self):
     for slider in self.sliders:
       slider.visible = not self.visible
+  
+  def check_dragging(self):
+    if sum([1 for slider in self.sliders if slider.dragging == True]) >= 1:
+      return True
+    else:
+      return False
   
   def get(self, rect):
     for slider in self.sliders:
@@ -59,7 +66,6 @@ class Slider:
     self.current = self.default
     self.visible = True
     
-    # slider buttons
     if top_bar == False:
       self.slider_rect = self.rect
       
@@ -69,26 +75,49 @@ class Slider:
     
     self.slider_surface = Surface((self.slider_rect.width, self.slider_rect.height))
     
+    # slider buttons
+    # general dimensions
     self.buttons_size = self.slider_rect.height
     self.button_right = Surface((self.buttons_size, self.buttons_size))
     self.button_left = Surface((self.buttons_size, self.buttons_size))
     
+    # right side
     self.button_right_rect = self.button_right.get_rect()
     self.button_right_rect.x = self.slider_rect.x + self.slider_surface.get_width() - self.buttons_size
     self.button_right_rect.y = self.slider_rect.y
     
+    # left side
     self.button_left_rect = self.button_left.get_rect()
     self.button_left_rect.x = self.slider_rect.x
     self.button_left_rect.y = self.slider_rect.y
     
-    start_x = self.buttons_size*3//2
-    end_x = self.slider_surface.get_width() - (self.buttons_size*3//2)
-    x_offset = round(((self.current - self.min) / self.range) * (end_x - start_x))
-    self.slider_dot_rect = draw.circle(self.slider_surface, (255, 255, 255), (start_x + x_offset, self.buttons_size//2 + 1), 4, 1)
+    self.slider_bar_start_x = self.buttons_size*3//2
+    self.slider_bar_end_x = self.slider_surface.get_width() - (self.buttons_size*3//2)
+    self.set_slider_dot_pos()
     
     draw.line(self.button_right, (255, 255, 255), (self.buttons_size//2, 0), (self.buttons_size//2, self.buttons_size), 3)
     draw.line(self.button_right, (255, 255, 255), (0, self.buttons_size//2), (self.buttons_size, self.buttons_size//2), 3)
     draw.line(self.button_left, (255, 255, 255), (0, self.buttons_size//2), (self.buttons_size, self.buttons_size//2), 3)
+    
+    # controls draggables
+    self.dragging = False
+
+  def set_slider_dot_pos(self):
+    x_offset = round(
+      ((self.current - self.min) / self.range) * 
+      (self.slider_bar_end_x - self.slider_bar_start_x)
+    )
+    
+    self.slider_dot_rect = draw.circle(
+      self.slider_surface,
+      (255, 255, 255),
+      (
+        self.slider_bar_start_x + x_offset,
+        self.buttons_size//2 + 1
+        ),
+      4,
+      1)
+    self.calculate_absolute_dot_rect()
 
   def set_visible(self):
     self.visible = True
@@ -106,6 +135,7 @@ class Slider:
   def decrement(self):
     self.current -= self.step
     self.current = max(self.current, self.min)
+  
   
   def draw(self, window):
     if self.visible == True:
@@ -135,23 +165,46 @@ class Slider:
       # draw slider dot
       x_offset = round(((self.current - self.min) / self.range) * (end_x - start_x))
       self.slider_dot_rect = draw.circle(self.slider_surface, (255, 255, 255), (start_x + x_offset, self.buttons_size//2 + 1), 4, 1)
+      self.calculate_absolute_dot_rect()
       
       self.surface.blit(self.slider_surface, (0, self.surface.get_height()//2))
       
       # draw slider to window
       window.blit(self.surface, (self.rect.x, self.rect.y))
-  
-  def check_mouse_down(self, mouse):
-    if self.slider_dot_rect.collidepoint(mouse):
       
+  def calculate_absolute_dot_rect(self):
+    self.absolute_slider_dot_rect = self.slider_dot_rect
+    self.absolute_slider_dot_rect.x = self.slider_dot_rect.x + self.slider_rect.x
+    self.absolute_slider_dot_rect.y = self.slider_dot_rect.y + self.slider_rect.y
+    
   
-  def update(self, mouse):
+  def update(self, mouse, drag_available):
     pos = mouse.get_pos()
     if mouse.get_pressed()[0]:
       if self.button_right_rect.collidepoint(pos):
         self.increment()
       elif self.button_left_rect.collidepoint(pos):
         self.decrement()
+        
+      if self.absolute_slider_dot_rect.collidepoint(pos) and drag_available == True:
+        self.dragging = True
+    
+    else:
+      self.dragging = False
+
+    if self.dragging == True:
+      start_pos =self.slider_bar_start_x + self.rect.x
+      end_pos = self.slider_bar_end_x + self.rect.x
+      a = pos[0] - start_pos
+      b = end_pos - pos[0]
+      percentage = a/(end_pos - start_pos)
+      if percentage < 0:
+        percentage = 0
+      if percentage > 1:
+        percentage = 1
+      self.current = round(percentage*self.range) + self.min
+      self.set_slider_dot_pos()
+      print(percentage, self.current, a, b, start_pos, end_pos)
     
   def get_value(self):
     return self.current
