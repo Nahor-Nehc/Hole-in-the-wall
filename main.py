@@ -25,7 +25,10 @@ DBROWN = (159, 100,  64)
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Hole in the wall")
 
-# == # == # == # == # == #
+from components.loading_screen import Loader
+loading_screen = Loader(0, pygame.font.SysFont("consolas.ttf", 50))
+
+loading_screen.next_step(WIN)
 
 # sizes
 SIZE = round(WIDTH/(11.2))
@@ -39,7 +42,7 @@ PLAYER_BOUNDS = {
   "right": WIDTH/2 + SIZE*2
 }
 
-# == # == # == # == # == #
+loading_screen.next_step(WIN)
 
 # control panel measurements
 width =  round(HEIGHT - PLAYER_BOUNDS["right"] - PADDING*2)
@@ -72,7 +75,7 @@ BLOCK_SPEED_SLIDER = pygame.Rect(x, y + s_height*2 + PADDING*2, s_width, s_heigh
 
 #tile_size_slider
 
-# == # == # == # == # == #
+loading_screen.next_step(WIN)
 
 # user events
 TO_GAME = pygame.USEREVENT + 1
@@ -82,7 +85,7 @@ FAST_BACKWARD = pygame.USEREVENT + 4
 FAST_FORWARD = pygame.USEREVENT + 5
 USEREVENTS = [TO_GAME, TO_EDITOR, EDITOR_PLAY, FAST_BACKWARD, FAST_FORWARD]
 
-# == # == # == # == # == #
+loading_screen.next_step(WIN)
 
 # fonts
 FONT = lambda x: pygame.font.SysFont("consolas.ttf", x)
@@ -90,13 +93,13 @@ TITLEFONT = FONT(70)
 GAMEOVER_FONT = FONT(50)
 SLIDER_FONT = FONT(20)
 
-# == # == # == # == # == #
+loading_screen.next_step(WIN)
 
 # file locations
 from os import path
-PATH_TO_LEVELS = path.join("assets", "levels", "levels") # last levels is the shelve file itself
+PATH_TO_LEVELS = path.join("assets", "levels", "levels") # last "levels" is the shelve file itself
 
-# == # == # == # == # == #
+loading_screen.next_step(WIN)
 
 # unicode characters
 FAST_FORWARD_IMAGE = pygame.transform.scale(pygame.image.load(path.join("assets", "images", "forward_button.png")), (b_width, b_height)).convert_alpha()
@@ -104,9 +107,11 @@ PLAY_IMAGE = pygame.transform.scale(pygame.image.load(path.join("assets", "image
 PAUSE_IMAGE = pygame.transform.scale(pygame.image.load(path.join("assets", "images", "pause_button.png")), (b_width, b_height)).convert_alpha()
 FAST_BACKWARD_IMAGE = pygame.transform.scale(pygame.image.load(path.join("assets", "images", "back_button.png")), (b_width, b_height)).convert_alpha()
 
-# == # == # == # == # == #
+loading_screen.next_step(WIN)
 
 def handle_events(player, mouse, state, blocks, pen, buttons, editor_sliders):
+  
+  pressing = pygame.key.get_pressed()
   
   for event in pygame.event.get():
     #if the "x" button is pressed ...
@@ -169,6 +174,12 @@ def handle_events(player, mouse, state, blocks, pen, buttons, editor_sliders):
         
         elif event.type == pygame.MOUSEWHEEL:
           blocks.scrolled(event.y)
+          
+        elif event.type == pygame.KEYDOWN:
+          if (event.key == pygame.K_s) and (pressing[pygame.K_LCTRL]):
+            blocks.save(PATH_TO_LEVELS)
+          elif (event.key == pygame.K_o) and (pressing[pygame.K_LCTRL]):
+            blocks.load(PATH_TO_LEVELS)
     
     # USEREVENTS
     if event.type == TO_GAME:
@@ -201,7 +212,7 @@ def handle_events(player, mouse, state, blocks, pen, buttons, editor_sliders):
     elif event.type == FAST_FORWARD:
       blocks.fast_forward(10)
 
-# == # == # == # == # == #
+loading_screen.next_step(WIN)
 
 def process_game(player, blocks, state, pen, editor_sliders):
   editor_sliders.update(pygame.mouse)
@@ -232,7 +243,7 @@ def process_game(player, blocks, state, pen, editor_sliders):
       blocks.move()
       player.update()
 
-# == # == # == # == # == #
+loading_screen.next_step(WIN)
 
 def draw(WIN, player, blocks, state, pen, mouse, buttons, editor_sliders):
   WIN.fill(BLACK)
@@ -242,6 +253,7 @@ def draw(WIN, player, blocks, state, pen, mouse, buttons, editor_sliders):
     
     player.draw(WIN)
     blocks.draw(WIN)
+    
     if state.get_substate() == "game over":
       text = GAMEOVER_FONT.render("Game Over", 1, WHITE, BLACK)
       WIN.blit(text, (WIDTH/2 - text.get_width()/2, HEIGHT/3))
@@ -251,6 +263,7 @@ def draw(WIN, player, blocks, state, pen, mouse, buttons, editor_sliders):
     buttons.draw(WIN)
     
     if state.get_substate() == "play":
+      pygame.draw.rect(WIN, GREY, pygame.Rect(PLAYER_BOUNDS["left"], PLAYER_BOUNDS["top"], SIZE*4, SIZE*4), 1)
       player.draw(WIN)
     
     if state.get_substate() == "paused":
@@ -266,15 +279,19 @@ def draw(WIN, player, blocks, state, pen, mouse, buttons, editor_sliders):
   editor_sliders.draw(WIN)
   pygame.display.update()
 
-# == # == # == # == # == #
+loading_screen.next_step(WIN)
 
 def main():
   clock = pygame.time.Clock()
+  
+  loading_screen.next_step(WIN)
   
   # remove unnecessary events from event list
   pygame.event.set_blocked(None)
   pygame.event.set_allowed([pygame.QUIT, pygame.KEYUP, pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.MOUSEWHEEL])
   pygame.event.set_allowed(USEREVENTS)
+  
+  loading_screen.next_step(WIN)
   
   from components.state import State
   #from components.textures import TextureAtlas
@@ -283,6 +300,8 @@ def main():
   from components.drawer import Drawer
   from components.button import Buttons
   from components.slider import Slider, Sliders
+  
+  loading_screen.next_step(WIN)
   
   # GAME VARIABLES
   state = State("game")
@@ -299,6 +318,8 @@ def main():
   buttons.create(FAST_FORWARD_BUTTON, BLACK, FAST_FORWARD, 1, GREY, False, image = FAST_FORWARD_IMAGE)
   buttons.create(FAST_BACKWARD_BUTTON, BLACK, FAST_BACKWARD, 1, GREY, False, image = FAST_BACKWARD_IMAGE)
   
+  loading_screen.next_step(WIN)
+  
   temp_blocks = [
     Block(PLAYER_BOUNDS["left"] + SIZE*i2, -i*3*SIZE, SIZE, SIZE, WHITE, 3, 0.7) for i in range(10) for i2 in range(2)
   ]
@@ -311,6 +332,8 @@ def main():
   block_speed = Slider(1, 10, 3, 1, BLOCK_SPEED_SLIDER, top_bar = True, name = "block speed:", font = SLIDER_FONT, value_display=True)
   editor_sliders = Sliders(block_width, block_height, block_speed)
   editor_sliders.set_invisible()
+  
+  loading_screen.next_step(WIN)
   
   #texture_atlas = TextureAtlas(PATH_TO_ATLAS_IMAGE)
   
@@ -332,9 +355,7 @@ def main():
     process_game(player, blocks, state, pen, editor_sliders)
     
     draw(WIN, player, blocks, state, pen, mouse, buttons, editor_sliders)
-    
 
-
-# == # == # == # == # == #
+loading_screen.next_step(WIN)
 
 main()
