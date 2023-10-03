@@ -26,7 +26,7 @@ WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Hole in the wall")
 
 from components.loading_screen import Loader
-loading_screen = Loader(0, pygame.font.SysFont("consolas.ttf", 50))
+loading_screen = Loader(16, pygame.font.SysFont("consolas.ttf", 50))
 
 loading_screen.next_step(WIN)
 
@@ -110,7 +110,6 @@ FAST_BACKWARD_IMAGE = pygame.transform.scale(pygame.image.load(path.join("assets
 loading_screen.next_step(WIN)
 
 def handle_events(player, mouse, state, blocks, pen, buttons, editor_sliders):
-  
   pressing = pygame.key.get_pressed()
   
   for event in pygame.event.get():
@@ -300,6 +299,7 @@ def main():
   from components.drawer import Drawer
   from components.button import Buttons
   from components.slider import Slider, Sliders
+  from components.scroll import Scroll
   
   loading_screen.next_step(WIN)
   
@@ -336,6 +336,11 @@ def main():
   loading_screen.next_step(WIN)
   
   #texture_atlas = TextureAtlas(PATH_TO_ATLAS_IMAGE)
+  
+  test = Scroll(40, 40, 100, 100, 800, 10, RED)
+  
+  for i in range(0, 10):
+    test.draw_rect(str(i), BLUE, 10, i*5, 10, 3)
   
   # DEBUG MODE
   debug_mode = True
