@@ -204,7 +204,6 @@ class Slider:
         percentage = 1
       self.current = round(percentage*self.range) + self.min
       self.set_slider_dot_pos()
-      print(percentage, self.current, a, b, start_pos, end_pos)
     
   def get_value(self):
     return self.current
