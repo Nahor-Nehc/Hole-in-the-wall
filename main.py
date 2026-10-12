@@ -8,18 +8,18 @@ WIDTH, HEIGHT = 560, 560
 FPS = 30
 
 # general colours
-BLACK =  (  0,   0,   0)
-WHITE =  (255, 255, 255)
-RED =    (211,   0,   0)
-GREEN =  (  0, 150,   0)
-DGREEN = (  0, 100,   0)
-BLUE =   (  0,   0, 211)
-LBLUE =  (137, 207, 240)
-GREY =   (201, 201, 201)
-LGREY =  (231, 231, 231)
-DGREY =  ( 50,  50,  50)
-LBROWN = (185, 122,  87)
-DBROWN = (159, 100,  64)
+BLACK =    (    0,     0,     0)
+WHITE =    (255, 255, 255)
+RED =        (211,     0,     0)
+GREEN =    (    0, 150,     0)
+DGREEN = (    0, 100,     0)
+BLUE =     (    0,     0, 211)
+LBLUE =    (137, 207, 240)
+GREY =     (201, 201, 201)
+LGREY =    (231, 231, 231)
+DGREY =    ( 50,    50,    50)
+LBROWN = (185, 122,    87)
+DBROWN = (159, 100,    64)
 
 # display window that is drawn to
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -36,16 +36,16 @@ PADDING = SIZE/3
 
 top = int(HEIGHT/3*2 - SIZE*2)
 PLAYER_BOUNDS = {
-  "top": top,
-  "bottom": top + SIZE*4,
-  "left": WIDTH/2 - SIZE*2,
-  "right": WIDTH/2 + SIZE*2
+    "top": top,
+    "bottom": top + SIZE*4,
+    "left": WIDTH/2 - SIZE*2,
+    "right": WIDTH/2 + SIZE*2
 }
 
 loading_screen.next_step(WIN)
 
 # control panel measurements
-width =  round(HEIGHT - PLAYER_BOUNDS["right"] - PADDING*2)
+width =    round(HEIGHT - PLAYER_BOUNDS["right"] - PADDING*2)
 height = round(PLAYER_BOUNDS["top"] - PADDING*2)
 
 b_width = (width-PADDING*2)/3
@@ -110,256 +110,256 @@ FAST_BACKWARD_IMAGE = pygame.transform.scale(pygame.image.load(path.join("assets
 loading_screen.next_step(WIN)
 
 def handle_events(player, mouse, state, blocks, pen, buttons, editor_sliders):
-  pressing = pygame.key.get_pressed()
-  
-  for event in pygame.event.get():
-    #if the "x" button is pressed ...
-    if event.type == pygame.QUIT:
-      #save game with shelve?
-      #
-      #ends game loop
-      run = False
-
-      #terminates pygame
-      pygame.quit()
-
-      #terminates system
-      import sys
-      sys.exit()
+    pressing = pygame.key.get_pressed()
     
-    # CLASS UPDATERS
+    for event in pygame.event.get():
+        #if the "x" button is pressed ...
+        if event.type == pygame.QUIT:
+            #save game with shelve?
+            #
+            #ends game loop
+            run = False
 
-    if event.type == pygame.MOUSEBUTTONDOWN:
-      if pygame.mouse.get_pressed()[0]:
-        buttons.check(mouse)
-      
-    # GAME MODE
-    if state.get_state() == "game":
-      if state.get_substate() == "play":
-        if event.type == pygame.KEYDOWN:
-          if event.key == pygame.K_LEFT:
-            player.move(-1*SIZE, 0)
-          elif event.key == pygame.K_RIGHT:
-            player.move(SIZE, 0)
-          elif event.key == pygame.K_UP:
-            player.move(0, -1 * SIZE)
-          elif event.key == pygame.K_DOWN:
-            player.move(0, SIZE)
+            #terminates pygame
+            pygame.quit()
+
+            #terminates system
+            import sys
+            sys.exit()
         
-          elif event.key == pygame.K_e:
-            pygame.event.post(pygame.event.Event(TO_EDITOR))
-    
-    # EDITOR MODE
-    elif state.get_state() == "editor":
-      if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_g:
-          pygame.event.post(pygame.event.Event(TO_GAME))
+        # CLASS UPDATERS
 
-      if state.get_substate() == "play":
-        if event.type == pygame.KEYDOWN:
-          if event.key == pygame.K_LEFT:
-            player.move(-1*SIZE, 0)
-          elif event.key == pygame.K_RIGHT:
-            player.move(SIZE, 0)
-          elif event.key == pygame.K_UP:
-            player.move(0, -1 * SIZE)
-          elif event.key == pygame.K_DOWN:
-            player.move(0, SIZE)
-      
-      if state.get_substate() == "paused":
         if event.type == pygame.MOUSEBUTTONDOWN:
-          if pygame.mouse.get_pressed()[0]:
-            pen.draw(blocks, mouse)
+            if pygame.mouse.get_pressed()[0]:
+                buttons.check(mouse)
+            
+        # GAME MODE
+        if state.get_state() == "game":
+            if state.get_substate() == "play":
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        player.move(-1*SIZE, 0)
+                    elif event.key == pygame.K_RIGHT:
+                        player.move(SIZE, 0)
+                    elif event.key == pygame.K_UP:
+                        player.move(0, -1 * SIZE)
+                    elif event.key == pygame.K_DOWN:
+                        player.move(0, SIZE)
+                
+                    elif event.key == pygame.K_e:
+                        pygame.event.post(pygame.event.Event(TO_EDITOR))
         
-        elif event.type == pygame.MOUSEWHEEL:
-          blocks.scrolled(event.y)
-          
-        elif event.type == pygame.KEYDOWN:
-          if (event.key == pygame.K_s) and (pressing[pygame.K_LCTRL]):
-            blocks.save(PATH_TO_LEVELS)
-          elif (event.key == pygame.K_o) and (pressing[pygame.K_LCTRL]):
-            blocks.load(PATH_TO_LEVELS)
-    
-    # USEREVENTS
-    if event.type == TO_GAME:
-      state.set_state("game")
-      state.set_substate("play")
-      buttons.toggleVis(PLAY_BUTTON)
-      buttons.toggleVis(FAST_BACKWARD_BUTTON)
-      buttons.toggleVis(FAST_FORWARD_BUTTON)
-      editor_sliders.set_invisible()
-    
-    elif event.type == TO_EDITOR:
-      state.set_state("editor")
-      state.set_substate("paused")
-      buttons.toggleVis(PLAY_BUTTON)
-      buttons.toggleVis(FAST_BACKWARD_BUTTON)
-      buttons.toggleVis(FAST_FORWARD_BUTTON)
-      editor_sliders.set_visible()
-      
-    elif event.type == EDITOR_PLAY:
-      if state.get_substate() == "paused":
-        state.set_substate("play")
-        buttons.changeAttr(PLAY_BUTTON, "image", PAUSE_IMAGE)
-      else:
-        state.set_substate("paused")
-        buttons.changeAttr(PLAY_BUTTON, "image", PLAY_IMAGE)
-    
-    elif event.type == FAST_BACKWARD:
-      blocks.fast_forward(-10)
-    
-    elif event.type == FAST_FORWARD:
-      blocks.fast_forward(10)
+        # EDITOR MODE
+        elif state.get_state() == "editor":
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_g:
+                    pygame.event.post(pygame.event.Event(TO_GAME))
+
+            if state.get_substate() == "play":
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        player.move(-1*SIZE, 0)
+                    elif event.key == pygame.K_RIGHT:
+                        player.move(SIZE, 0)
+                    elif event.key == pygame.K_UP:
+                        player.move(0, -1 * SIZE)
+                    elif event.key == pygame.K_DOWN:
+                        player.move(0, SIZE)
+            
+            if state.get_substate() == "paused":
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if pygame.mouse.get_pressed()[0]:
+                        pen.draw(blocks, mouse)
+                
+                elif event.type == pygame.MOUSEWHEEL:
+                    blocks.scrolled(event.y)
+                    
+                elif event.type == pygame.KEYDOWN:
+                    if (event.key == pygame.K_s) and (pressing[pygame.K_LCTRL]):
+                        blocks.save(PATH_TO_LEVELS)
+                    elif (event.key == pygame.K_o) and (pressing[pygame.K_LCTRL]):
+                        blocks.load(PATH_TO_LEVELS)
+        
+        # USEREVENTS
+        if event.type == TO_GAME:
+            state.set_state("game")
+            state.set_substate("play")
+            buttons.toggleVis(PLAY_BUTTON)
+            buttons.toggleVis(FAST_BACKWARD_BUTTON)
+            buttons.toggleVis(FAST_FORWARD_BUTTON)
+            editor_sliders.set_invisible()
+        
+        elif event.type == TO_EDITOR:
+            state.set_state("editor")
+            state.set_substate("paused")
+            buttons.toggleVis(PLAY_BUTTON)
+            buttons.toggleVis(FAST_BACKWARD_BUTTON)
+            buttons.toggleVis(FAST_FORWARD_BUTTON)
+            editor_sliders.set_visible()
+            
+        elif event.type == EDITOR_PLAY:
+            if state.get_substate() == "paused":
+                state.set_substate("play")
+                buttons.changeAttr(PLAY_BUTTON, "image", PAUSE_IMAGE)
+            else:
+                state.set_substate("paused")
+                buttons.changeAttr(PLAY_BUTTON, "image", PLAY_IMAGE)
+        
+        elif event.type == FAST_BACKWARD:
+            blocks.fast_forward(-10)
+        
+        elif event.type == FAST_FORWARD:
+            blocks.fast_forward(10)
 
 loading_screen.next_step(WIN)
 
 def process_game(player, blocks, state, pen, editor_sliders):
-  editor_sliders.update(pygame.mouse)
-  if state.get_state() == "game":
-    if state.get_substate() == "game over":
-      pass
-    elif state.get_substate() == "paused":
-      pass
-    elif state.get_substate() == "play":
-      blocks.move()
-      player.update()
-      if player.collide(blocks.get_rects()):
-        state.set_substate("game over")
-      blocks.cull(HEIGHT)
+    editor_sliders.update(pygame.mouse)
+    if state.get_state() == "game":
+        if state.get_substate() == "game over":
+            pass
+        elif state.get_substate() == "paused":
+            pass
+        elif state.get_substate() == "play":
+            blocks.move()
+            player.update()
+            if player.collide(blocks.get_rects()):
+                state.set_substate("game over")
+            blocks.cull(HEIGHT)
 
-  if state.get_state() == "editor":
-    slider = editor_sliders.get(BLOCK_WIDTH_SLIDER)
-    if slider != None:
-      pen.set_width(slider.current)
-    slider = editor_sliders.get(BLOCK_HEIGHT_SLIDER)
-    if slider != None:
-      pen.set_height(slider.current)
-    slider = editor_sliders.get(BLOCK_SPEED_SLIDER)
-    if slider != None:
-      pen.set_speed(slider.current)
-      
-    if state.get_substate() == "play":
-      blocks.move()
-      player.update()
+    if state.get_state() == "editor":
+        slider = editor_sliders.get(BLOCK_WIDTH_SLIDER)
+        if slider != None:
+            pen.set_width(slider.current)
+        slider = editor_sliders.get(BLOCK_HEIGHT_SLIDER)
+        if slider != None:
+            pen.set_height(slider.current)
+        slider = editor_sliders.get(BLOCK_SPEED_SLIDER)
+        if slider != None:
+            pen.set_speed(slider.current)
+            
+        if state.get_substate() == "play":
+            blocks.move()
+            player.update()
 
 loading_screen.next_step(WIN)
 
 def draw(WIN, player, blocks, state, pen, mouse, buttons, editor_sliders):
-  WIN.fill(BLACK)
-  if state.get_state() == "game":
+    WIN.fill(BLACK)
+    if state.get_state() == "game":
+        
+        pygame.draw.rect(WIN, GREY, pygame.Rect(PLAYER_BOUNDS["left"], PLAYER_BOUNDS["top"], SIZE*4, SIZE*4), 1)
+        
+        player.draw(WIN)
+        blocks.draw(WIN)
+        
+        if state.get_substate() == "game over":
+            text = GAMEOVER_FONT.render("Game Over", 1, WHITE, BLACK)
+            WIN.blit(text, (WIDTH/2 - text.get_width()/2, HEIGHT/3))
+        
+    if state.get_state() == "editor":
+        blocks.draw(WIN)
+        buttons.draw(WIN)
+        
+        if state.get_substate() == "play":
+            pygame.draw.rect(WIN, GREY, pygame.Rect(PLAYER_BOUNDS["left"], PLAYER_BOUNDS["top"], SIZE*4, SIZE*4), 1)
+            player.draw(WIN)
+        
+        if state.get_substate() == "paused":
+            pen.draw_grid(WIN)
+            pen.preview(mouse, WIN)
+            
+            for i in range(0, 5):
+                pygame.draw.line(WIN, WHITE, (PLAYER_BOUNDS["left"] + SIZE*i, 0), (PLAYER_BOUNDS["left"] + SIZE*i, HEIGHT), 3)
+            
+            for i in range(0, 5):
+                pygame.draw.line(WIN, WHITE, (PLAYER_BOUNDS["left"], PLAYER_BOUNDS["top"] + SIZE*i), (PLAYER_BOUNDS["right"], PLAYER_BOUNDS["top"] + SIZE*i), 3)
     
-    pygame.draw.rect(WIN, GREY, pygame.Rect(PLAYER_BOUNDS["left"], PLAYER_BOUNDS["top"], SIZE*4, SIZE*4), 1)
-    
-    player.draw(WIN)
-    blocks.draw(WIN)
-    
-    if state.get_substate() == "game over":
-      text = GAMEOVER_FONT.render("Game Over", 1, WHITE, BLACK)
-      WIN.blit(text, (WIDTH/2 - text.get_width()/2, HEIGHT/3))
-    
-  if state.get_state() == "editor":
-    blocks.draw(WIN)
-    buttons.draw(WIN)
-    
-    if state.get_substate() == "play":
-      pygame.draw.rect(WIN, GREY, pygame.Rect(PLAYER_BOUNDS["left"], PLAYER_BOUNDS["top"], SIZE*4, SIZE*4), 1)
-      player.draw(WIN)
-    
-    if state.get_substate() == "paused":
-      pen.draw_grid(WIN)
-      pen.preview(mouse, WIN)
-      
-      for i in range(0, 5):
-        pygame.draw.line(WIN, WHITE, (PLAYER_BOUNDS["left"] + SIZE*i, 0), (PLAYER_BOUNDS["left"] + SIZE*i, HEIGHT), 3)
-      
-      for i in range(0, 5):
-        pygame.draw.line(WIN, WHITE, (PLAYER_BOUNDS["left"], PLAYER_BOUNDS["top"] + SIZE*i), (PLAYER_BOUNDS["right"], PLAYER_BOUNDS["top"] + SIZE*i), 3)
-  
-  editor_sliders.draw(WIN)
-  pygame.display.update()
+    editor_sliders.draw(WIN)
+    pygame.display.update()
 
 loading_screen.next_step(WIN)
 
 def main():
-  clock = pygame.time.Clock()
-  
-  loading_screen.next_step(WIN)
-  
-  # remove unnecessary events from event list
-  pygame.event.set_blocked(None)
-  pygame.event.set_allowed([pygame.QUIT, pygame.KEYUP, pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.MOUSEWHEEL])
-  pygame.event.set_allowed(USEREVENTS)
-  
-  loading_screen.next_step(WIN)
-  
-  from components.state import State
-  #from components.textures import TextureAtlas
-  from components.player import Player
-  from components.blocks import Block, Blocks
-  from components.drawer import Drawer
-  from components.button import Buttons
-  from components.slider import Slider, Sliders
-  from components.scroll import Scroll
-  
-  loading_screen.next_step(WIN)
-  
-  # GAME VARIABLES
-  state = State("game")
-  state.set_substate("play")
-  player_surface = pygame.Surface((SIZE, SIZE))
-  player_surface.fill(WHITE)
-  player = Player(PLAYER_BOUNDS["left"], PLAYER_BOUNDS["top"], player_surface, PLAYER_BOUNDS)
-  
-  pen = Drawer(SIZE, SIZE, WHITE, 3, 0.7, 10, PLAYER_BOUNDS)
-  
-  buttons = Buttons()
-  
-  buttons.create(PLAY_BUTTON, BLACK, EDITOR_PLAY, 1, GREY, False, image = PLAY_IMAGE)
-  buttons.create(FAST_FORWARD_BUTTON, BLACK, FAST_FORWARD, 1, GREY, False, image = FAST_FORWARD_IMAGE)
-  buttons.create(FAST_BACKWARD_BUTTON, BLACK, FAST_BACKWARD, 1, GREY, False, image = FAST_BACKWARD_IMAGE)
-  
-  loading_screen.next_step(WIN)
-  
-  temp_blocks = [
-    Block(PLAYER_BOUNDS["left"] + SIZE*i2, -i*3*SIZE, SIZE, SIZE, WHITE, 3, 0.7) for i in range(10) for i2 in range(2)
-  ]
-  
-  blocks = Blocks(*temp_blocks)
-  #blocks.toggle_see_collision_box()
-  
-  block_width = Slider(5, 100, SIZE, 5, BLOCK_WIDTH_SLIDER, top_bar = True, name = "block width:", font = SLIDER_FONT, value_display=True)
-  block_height = Slider(5, 100, SIZE, 5, BLOCK_HEIGHT_SLIDER, top_bar = True, name = "block height:", font = SLIDER_FONT, value_display=True)
-  block_speed = Slider(1, 10, 3, 1, BLOCK_SPEED_SLIDER, top_bar = True, name = "block speed:", font = SLIDER_FONT, value_display=True)
-  editor_sliders = Sliders(block_width, block_height, block_speed)
-  editor_sliders.set_invisible()
-  
-  loading_screen.next_step(WIN)
-  
-  #texture_atlas = TextureAtlas(PATH_TO_ATLAS_IMAGE)
-  
-  test = Scroll(40, 40, 100, 100, 800, 10, RED)
-  
-  for i in range(0, 10):
-    test.draw_rect(str(i), BLUE, 10, i*5, 10, 3)
-  
-  # DEBUG MODE
-  debug_mode = True
-  
-  #initiates game loop
-  run = 1
-  while run:
+    clock = pygame.time.Clock()
     
-    #ticks the clock
-    clock.tick(FPS)
+    loading_screen.next_step(WIN)
+    
+    # remove unnecessary events from event list
+    pygame.event.set_blocked(None)
+    pygame.event.set_allowed([pygame.QUIT, pygame.KEYUP, pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.MOUSEWHEEL])
+    pygame.event.set_allowed(USEREVENTS)
+    
+    loading_screen.next_step(WIN)
+    
+    from components.state import State
+    #from components.textures import TextureAtlas
+    from components.player import Player
+    from components.blocks import Block, Blocks
+    from components.drawer import Drawer
+    from components.button import Buttons
+    from components.slider import Slider, Sliders
+    from components.scroll import Scroll
+    
+    loading_screen.next_step(WIN)
+    
+    # GAME VARIABLES
+    state = State("game")
+    state.set_substate("play")
+    player_surface = pygame.Surface((SIZE, SIZE))
+    player_surface.fill(WHITE)
+    player = Player(PLAYER_BOUNDS["left"], PLAYER_BOUNDS["top"], player_surface, PLAYER_BOUNDS)
+    
+    pen = Drawer(SIZE, SIZE, WHITE, 3, 0.7, 10, PLAYER_BOUNDS)
+    
+    buttons = Buttons()
+    
+    buttons.create(PLAY_BUTTON, BLACK, EDITOR_PLAY, 1, GREY, False, image = PLAY_IMAGE)
+    buttons.create(FAST_FORWARD_BUTTON, BLACK, FAST_FORWARD, 1, GREY, False, image = FAST_FORWARD_IMAGE)
+    buttons.create(FAST_BACKWARD_BUTTON, BLACK, FAST_BACKWARD, 1, GREY, False, image = FAST_BACKWARD_IMAGE)
+    
+    loading_screen.next_step(WIN)
+    
+    temp_blocks = [
+        Block(PLAYER_BOUNDS["left"] + SIZE*i2, -i*3*SIZE, SIZE, SIZE, WHITE, 3, 0.7) for i in range(10) for i2 in range(2)
+    ]
+    
+    blocks = Blocks(*temp_blocks)
+    #blocks.toggle_see_collision_box()
+    
+    block_width = Slider(5, 100, SIZE, 5, BLOCK_WIDTH_SLIDER, top_bar = True, name = "block width:", font = SLIDER_FONT, value_display=True)
+    block_height = Slider(5, 100, SIZE, 5, BLOCK_HEIGHT_SLIDER, top_bar = True, name = "block height:", font = SLIDER_FONT, value_display=True)
+    block_speed = Slider(1, 10, 3, 1, BLOCK_SPEED_SLIDER, top_bar = True, name = "block speed:", font = SLIDER_FONT, value_display=True)
+    editor_sliders = Sliders(block_width, block_height, block_speed)
+    editor_sliders.set_invisible()
+    
+    loading_screen.next_step(WIN)
+    
+    #texture_atlas = TextureAtlas(PATH_TO_ATLAS_IMAGE)
+    
+    test = Scroll(40, 40, 100, 100, 800, 10, RED)
+    
+    for i in range(0, 10):
+        test.draw_rect(str(i), BLUE, 10, i*5, 10, 3)
+    
+    # DEBUG MODE
+    debug_mode = True
+    
+    #initiates game loop
+    run = 1
+    while run:
+        
+        #ticks the clock
+        clock.tick(FPS)
 
-    mouse = pygame.mouse.get_pos()
-    
-    #for everything that the user has inputted ...
-    handle_events(player, mouse, state, blocks, pen, buttons, editor_sliders)
-    
-    process_game(player, blocks, state, pen, editor_sliders)
-    
-    draw(WIN, player, blocks, state, pen, mouse, buttons, editor_sliders)
+        mouse = pygame.mouse.get_pos()
+        
+        #for everything that the user has inputted ...
+        handle_events(player, mouse, state, blocks, pen, buttons, editor_sliders)
+        
+        process_game(player, blocks, state, pen, editor_sliders)
+        
+        draw(WIN, player, blocks, state, pen, mouse, buttons, editor_sliders)
 
 loading_screen.next_step(WIN)
 
